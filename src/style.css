@@ -1,0 +1,231 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+:root {
+  --bg-color: #000000;
+  --accent-color: #00ffff;
+  --accent-orange: #ff8800;
+  --text-color: #00ffff;
+  --panel-bg: rgba(0, 10, 20, 0.95);
+  --glow-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-family: 'JetBrains Mono', monospace;
+  overflow: hidden;
+}
+
+#map {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  z-index: 1;
+}
+
+/* Status Overlay */
+#overlay {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 10;
+  background: var(--panel-bg);
+  padding: 15px;
+  border: 1px solid var(--accent-color);
+  box-shadow: var(--glow-shadow);
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0 0 10px 0;
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px var(--accent-color);
+}
+
+.stats {
+  font-size: 0.8rem;
+  margin-bottom: 10px;
+}
+
+.stat-item {
+  margin-bottom: 5px;
+}
+
+#overlay button {
+  background: transparent;
+  border: 1px solid var(--accent-color);
+  color: var(--accent-color);
+  padding: 8px 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  margin-right: 5px;
+}
+
+#overlay button:hover {
+  background: var(--accent-color);
+  color: #000;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+}
+
+/* Control Panel */
+#control-panel {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 280px;
+  z-index: 10;
+  background: var(--panel-bg);
+  border: 1px solid var(--accent-color);
+  box-shadow: var(--glow-shadow);
+  padding: 15px;
+}
+
+#control-panel.hidden {
+  display: none;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  border-bottom: 1px solid var(--accent-color);
+  padding-bottom: 10px;
+}
+
+.panel-header h2 {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: 1px;
+}
+
+#close-panel {
+  background: transparent;
+  border: 1px solid var(--accent-color);
+  color: var(--accent-color);
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+#close-panel:hover {
+  background: var(--accent-color);
+  color: #000;
+}
+
+.control-section {
+  margin-bottom: 20px;
+}
+
+.control-section h3 {
+  margin: 0 0 10px 0;
+  font-size: 0.8rem;
+  color: var(--accent-orange);
+  letter-spacing: 1px;
+}
+
+.control-section label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 0.75rem;
+}
+
+.control-section label span:first-child {
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.control-section label span:last-child {
+  width: 40px;
+  text-align: right;
+}
+
+/* Slider Styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 4px;
+  background: #003344;
+  border-radius: 2px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: var(--accent-color);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 8px var(--accent-color);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: var(--accent-color);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 8px var(--accent-color);
+}
+
+/* Toggle Styling */
+.toggle-label {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+}
+
+.toggle-label input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--accent-color);
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+}
+
+.toggle-label input[type="checkbox"]:checked {
+  background: var(--accent-color);
+}
+
+.toggle-label input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: -2px;
+  left: 2px;
+  color: #000;
+  font-size: 12px;
+}
+
+/* CRT Scanline Effect on overlay */
+#overlay::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+  background-size: 100% 2px;
+  pointer-events: none;
+  z-index: 2;
+}
