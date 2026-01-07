@@ -5,13 +5,59 @@ import mlcontour from 'maplibre-contour';
 
 // === DEM SOURCE FOR CONTOURS ===
 const demSource = new mlcontour.DemSource({
-    url: 'https://elevation-tiles-prod.s3.amazonaws.com/terrarium/{z}/{x}/{y}.png',
+    url: 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png',
     encoding: 'terrarium',
-    maxzoom: 13,
+    maxzoom: 12,
+    // Reduce worker count to avoid overwhelming network
+    worker: true,
 });
 demSource.setupMaplibre(maplibregl);
 
 let currentMode: 'satellite' | 'contour' = 'satellite';
+
+// === STATE MANAGEMENT ===
+const controlState = {
+    contourOpacity: 60,
+    contourGlow: 2,
+    contourDistance: 0,
+    cityOpacity: 80,
+    cityGlow: 4,
+    cityDistance: 0,
+    roadsDistance: 0,
+    railDistance: 0,
+    ferryDistance: 0,
+    detailBoost: 1,
+    crtIntensity: 25,
+    glowStyle: 'soft' as 'soft' | 'neon' | 'hard' | 'subtle' | 'none',
+    layers: {
+        contours: true,
+        cities: true,
+        water: true,
+        roads: true,
+        rail: true,
+        ferry: true,
+        borders: true
+    },
+    logOpen: false
+};
+
+// === DEBUG LOG HELPER ===
+function debugLog(msg: string, type: 'info' | 'warn' | 'error' | 'success' = 'info') {
+    const logContent = document.getElementById('log-content');
+    if (!logContent) return;
+
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${type}`;
+    const time = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    entry.textContent = `[${time}] ${msg}`;
+
+    logContent.appendChild(entry);
+    logContent.scrollTop = logContent.scrollHeight;
+
+    while (logContent.children.length > 100) {
+        logContent.removeChild(logContent.firstChild!);
+    }
+}
 
 // === STYLE CONFIGURATION ===
 const contourStyle: maplibregl.StyleSpecification = {
@@ -22,7 +68,7 @@ const contourStyle: maplibregl.StyleSpecification = {
             type: 'raster-dem',
             encoding: 'terrarium',
             tiles: [demSource.sharedDemProtocolUrl],
-            maxzoom: 13,
+            maxzoom: 12,
             tileSize: 256,
         },
         contours: {
@@ -30,25 +76,24 @@ const contourStyle: maplibregl.StyleSpecification = {
             tiles: [
                 demSource.contourProtocolUrl({
                     multiplier: 1,
+                    // Simplified thresholds - less aggressive
                     thresholds: {
-                        8: [200, 500],
-                        9: [100, 250],
-                        10: [50, 100],
-                        11: [25, 50],
-                        12: [10, 25],
-                        13: [5, 10],
-                        14: [2, 5],
+                        8: [500],
+                        10: [100, 500],
+                        12: [50, 200],
                     },
                     elevationKey: 'ele',
                     levelKey: 'level',
                     contourLayer: 'contours',
                 }),
             ],
-            maxzoom: 16,
+            maxzoom: 14,
         },
         openfree: {
             type: 'vector',
-            url: 'https://tiles.openfreemap.org/planet'
+            tiles: ['https://tiles.openfreemap.org/planet/latest/{z}/{x}/{y}.pbf'],
+            minzoom: 0,
+            maxzoom: 14
         }
     },
     layers: [
@@ -111,17 +156,27 @@ const contourStyle: maplibregl.StyleSpecification = {
             layout: { 'line-join': 'round' }
         },
 
-        // === WATER (BLUE) ===
+        // === WATER (FILLED BLUE AREA + COASTLINE GLOW) ===
+        {
+            id: 'water-fill',
+            type: 'fill',
+            source: 'openfree',
+            'source-layer': 'water',
+            paint: {
+                'fill-color': '#001133',
+                'fill-opacity': 0.9
+            }
+        },
         {
             id: 'water-glow',
             type: 'line',
             source: 'openfree',
             'source-layer': 'water',
             paint: {
-                'line-color': '#0044aa',
-                'line-width': 5,
-                'line-blur': 4,
-                'line-opacity': 0.5
+                'line-color': '#0066bb',
+                'line-width': 3,
+                'line-blur': 3,
+                'line-opacity': 0.6
             }
         },
         {
@@ -130,9 +185,9 @@ const contourStyle: maplibregl.StyleSpecification = {
             source: 'openfree',
             'source-layer': 'water',
             paint: {
-                'line-color': '#0088ff',
-                'line-width': 1.5,
-                'line-opacity': 1
+                'line-color': '#00aaff',
+                'line-width': 1,
+                'line-opacity': 0.9
             }
         },
 
@@ -160,6 +215,80 @@ const contourStyle: maplibregl.StyleSpecification = {
                 'line-color': '#ff8800',
                 'line-width': 1,
                 'line-opacity': 0.8
+            }
+        },
+
+        // === RAIL (MAGENTA GLOW) ===
+        {
+            id: 'rail-glow',
+            type: 'line',
+            source: 'openfree',
+            'source-layer': 'transportation',
+            filter: ['in', ['get', 'class'], ['literal', ['rail', 'light_rail', 'subway', 'tram']]],
+            minzoom: 8,
+            paint: {
+                'line-color': '#440066',
+                'line-width': 3,
+                'line-blur': 2,
+                'line-opacity': 0.5
+            }
+        },
+        {
+            id: 'rail-core',
+            type: 'line',
+            source: 'openfree',
+            'source-layer': 'transportation',
+            filter: ['in', ['get', 'class'], ['literal', ['rail', 'light_rail', 'subway', 'tram']]],
+            minzoom: 8,
+            paint: {
+                'line-color': '#ff00ff',
+                'line-width': 1.2,
+                'line-opacity': 0.9
+            }
+        },
+        {
+            id: 'rail-ticks',
+            type: 'line',
+            source: 'openfree',
+            'source-layer': 'transportation',
+            filter: ['in', ['get', 'class'], ['literal', ['rail', 'light_rail', 'subway', 'tram']]],
+            minzoom: 8,
+            paint: {
+                'line-color': '#ffffff',
+                'line-width': 0.8,
+                'line-opacity': 0.4,
+                'line-dasharray': [1, 3]
+            }
+        },
+
+        // === FERRY (CYAN DASHED) ===
+        {
+            id: 'ferry-glow',
+            type: 'line',
+            source: 'openfree',
+            'source-layer': 'transportation',
+            filter: ['==', ['get', 'class'], 'ferry'],
+            minzoom: 6,
+            paint: {
+                'line-color': '#004444',
+                'line-width': 2,
+                'line-blur': 2,
+                'line-opacity': 0.4,
+                'line-dasharray': [4, 4]
+            }
+        },
+        {
+            id: 'ferry-core',
+            type: 'line',
+            source: 'openfree',
+            'source-layer': 'transportation',
+            filter: ['==', ['get', 'class'], 'ferry'],
+            minzoom: 6,
+            paint: {
+                'line-color': '#00cccc',
+                'line-width': 1,
+                'line-opacity': 0.7,
+                'line-dasharray': [4, 4]
             }
         },
 
@@ -219,6 +348,34 @@ const contourStyle: maplibregl.StyleSpecification = {
             }
         },
 
+        // === BORDERS (RED/ORANGE DASHED) ===
+        {
+            id: 'borders-glow',
+            type: 'line',
+            source: 'openfree',
+            'source-layer': 'boundary',
+            filter: ['in', ['get', 'admin_level'], ['literal', [2, 4]]],
+            paint: {
+                'line-color': '#442200',
+                'line-width': 2,
+                'line-blur': 2,
+                'line-opacity': 0.5
+            }
+        },
+        {
+            id: 'borders-core',
+            type: 'line',
+            source: 'openfree',
+            'source-layer': 'boundary',
+            filter: ['in', ['get', 'admin_level'], ['literal', [2, 4]]],
+            paint: {
+                'line-color': '#ff6600',
+                'line-width': 1,
+                'line-opacity': 0.8,
+                'line-dasharray': [6, 4]
+            }
+        },
+
         // === PLACE LABELS ===
         {
             id: 'place-labels',
@@ -265,8 +422,8 @@ function toggleMode() {
 }
 
 // === CONTROL PANEL LOGIC ===
-function setupControls() {
-    // Settings panel toggle
+// Settings panel toggle - runs once on DOM ready
+document.addEventListener('DOMContentLoaded', () => {
     const settingsBtn = document.getElementById('settings-btn');
     const controlPanel = document.getElementById('control-panel');
     const closePanel = document.getElementById('close-panel');
@@ -277,7 +434,9 @@ function setupControls() {
     closePanel?.addEventListener('click', () => {
         controlPanel?.classList.add('hidden');
     });
+});
 
+function setupControls() {
     // Contour opacity slider
     setupSlider('contour-opacity', (val) => {
         const opacity = val / 100;
@@ -332,8 +491,73 @@ function setupControls() {
     // Layer toggles
     setupToggle('toggle-contours', ['contours-minor-glow', 'contours-minor-core', 'contours-major-glow', 'contours-major-core']);
     setupToggle('toggle-cities', ['buildings-glow', 'buildings-core', 'urban-glow', 'urban-core']);
-    setupToggle('toggle-water', ['water-glow', 'water-core']);
+    setupToggle('toggle-water', ['water-fill', 'water-glow', 'water-core']);
     setupToggle('toggle-roads', ['roads-glow', 'roads-core']);
+    setupToggle('toggle-rail', ['rail-glow', 'rail-core', 'rail-ticks']);
+    setupToggle('toggle-ferry', ['ferry-glow', 'ferry-core']);
+    setupToggle('toggle-borders', ['borders-glow', 'borders-core']);
+
+    // Glow style dropdown
+    const glowStyleSelect = document.getElementById('glow-style') as HTMLSelectElement;
+    if (glowStyleSelect) {
+        glowStyleSelect.addEventListener('change', () => {
+            controlState.glowStyle = glowStyleSelect.value as typeof controlState.glowStyle;
+            applyGlowStyle();
+        });
+    }
+}
+
+// === GLOW STYLE SYSTEM ===
+function applyGlowStyle() {
+    if (currentMode !== 'contour' || !map.isStyleLoaded()) return;
+
+    const cityGlow = controlState.cityGlow;
+    const glowStyle = controlState.glowStyle;
+
+    const glowConfigs = {
+        soft: { blurMult: 1.0, widthMult: 1.0, opacityMult: 1.0 },
+        neon: { blurMult: 0.5, widthMult: 1.8, opacityMult: 1.2 },
+        hard: { blurMult: 0.1, widthMult: 0.8, opacityMult: 1.0 },
+        subtle: { blurMult: 1.5, widthMult: 0.6, opacityMult: 0.5 },
+        none: { blurMult: 0, widthMult: 0, opacityMult: 0 }
+    };
+    const gc = glowConfigs[glowStyle];
+
+    if (map.getLayer('roads-glow')) {
+        map.setPaintProperty('roads-glow', 'line-blur', cityGlow * gc.blurMult);
+        map.setPaintProperty('roads-glow', 'line-width', (2 + cityGlow * 0.5) * gc.widthMult);
+        map.setPaintProperty('roads-glow', 'line-opacity', 0.4 * gc.opacityMult);
+    }
+    if (map.getLayer('buildings-glow')) {
+        map.setPaintProperty('buildings-glow', 'line-blur', cityGlow * 0.8 * gc.blurMult);
+        map.setPaintProperty('buildings-glow', 'line-width', (2 + cityGlow * 0.3) * gc.widthMult);
+        map.setPaintProperty('buildings-glow', 'line-opacity', 0.6 * gc.opacityMult);
+    }
+    if (map.getLayer('urban-glow')) {
+        map.setPaintProperty('urban-glow', 'line-blur', cityGlow * gc.blurMult);
+        map.setPaintProperty('urban-glow', 'line-width', (2 + cityGlow * 0.5) * gc.widthMult);
+        map.setPaintProperty('urban-glow', 'line-opacity', 0.5 * gc.opacityMult);
+    }
+    if (map.getLayer('rail-glow')) {
+        map.setPaintProperty('rail-glow', 'line-blur', cityGlow * 0.7 * gc.blurMult);
+        map.setPaintProperty('rail-glow', 'line-width', (2 + cityGlow * 0.4) * gc.widthMult);
+        map.setPaintProperty('rail-glow', 'line-opacity', 0.5 * gc.opacityMult);
+    }
+    if (map.getLayer('ferry-glow')) {
+        map.setPaintProperty('ferry-glow', 'line-blur', cityGlow * 0.5 * gc.blurMult);
+        map.setPaintProperty('ferry-glow', 'line-opacity', 0.4 * gc.opacityMult);
+    }
+    if (map.getLayer('water-glow')) {
+        map.setPaintProperty('water-glow', 'line-blur', 4 * gc.blurMult);
+        map.setPaintProperty('water-glow', 'line-width', 5 * gc.widthMult);
+        map.setPaintProperty('water-glow', 'line-opacity', 0.5 * gc.opacityMult);
+    }
+    if (map.getLayer('contours-minor-glow')) {
+        map.setPaintProperty('contours-minor-glow', 'line-blur', controlState.contourGlow * gc.blurMult);
+        map.setPaintProperty('contours-minor-glow', 'line-width', 2 * gc.widthMult);
+        map.setPaintProperty('contours-major-glow', 'line-blur', controlState.contourGlow * 1.5 * gc.blurMult);
+        map.setPaintProperty('contours-major-glow', 'line-width', 4 * gc.widthMult);
+    }
 }
 
 function setupSlider(id: string, callback: (val: number) => void) {
@@ -366,13 +590,27 @@ function setupToggle(id: string, layerIds: string[]) {
 
 // === EVENT HANDLERS ===
 map.on('load', () => {
-    console.log('Map loaded! Mode:', currentMode);
-    
-    document.getElementById('toggle-btn')?.addEventListener('click', toggleMode);
-    
+    debugLog('Map loaded', 'success');
+
+    document.getElementById('toggle-btn')?.addEventListener('click', () => {
+        debugLog('Mode toggle requested');
+        toggleMode();
+    });
+
+    // Log toggle button
+    document.getElementById('log-toggle-btn')?.addEventListener('click', () => {
+        controlState.logOpen = !controlState.logOpen;
+        document.getElementById('debug-log')?.classList.toggle('hidden', !controlState.logOpen);
+        debugLog(controlState.logOpen ? 'Log opened' : 'Log closed');
+    });
+
     const updateZoom = () => {
+        const zoom = map.getZoom();
         const zoomEl = document.getElementById('zoom-val');
-        if (zoomEl) zoomEl.textContent = map.getZoom().toFixed(1);
+        if (zoomEl) zoomEl.textContent = zoom.toFixed(1);
+
+        const statsEl = document.getElementById('log-stats');
+        if (statsEl) statsEl.textContent = `Z: ${zoom.toFixed(1)}`;
     };
     map.on('zoom', updateZoom);
     updateZoom();
@@ -381,9 +619,18 @@ map.on('load', () => {
 });
 
 map.on('style.load', () => {
-    console.log('Style loaded! Mode:', currentMode);
-    // Re-setup controls when style changes
+    debugLog(`Style loaded: ${currentMode}`, 'success');
     setTimeout(setupControls, 100);
+    applyGlowStyle();
 });
 
-map.on('error', (e) => console.error('MapLibre error:', e));
+map.on('error', (e) => {
+    console.error('MapLibre error:', e);
+    debugLog(`MAP ERROR: ${e.error?.message || 'Unknown'}`, 'error');
+});
+
+map.on('dataloading', (e: any) => {
+    if (e.dataType === 'source') {
+        debugLog(`Loading: ${e.sourceId}`);
+    }
+});
