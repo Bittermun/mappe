@@ -1,0 +1,271 @@
+{
+    "description": "1930 US Census data for key counties during the Great Depression era",
+    "source": "Synthetic sample data based on historical sources. Replace with NHGIS data for production.",
+    "counties": [
+        {
+            "fips": "36061",
+            "name": "New York County",
+            "state": "New York",
+            "seatCity": "Manhattan",
+            "population1930": 1867312,
+            "population1920": 2284103,
+            "populationChange": -18.2,
+            "density": 69468,
+            "unemploymentEst1932": 25.0,
+            "industries": [
+                "Finance",
+                "Manufacturing",
+                "Trade"
+            ],
+            "majorEmployers": [
+                "Wall Street",
+                "Garment District",
+                "Port of NY"
+            ],
+            "notes": "Financial center. Ground zero for Black Tuesday."
+        },
+        {
+            "fips": "17031",
+            "name": "Cook County",
+            "state": "Illinois",
+            "seatCity": "Chicago",
+            "population1930": 3982123,
+            "population1920": 3053017,
+            "populationChange": 30.4,
+            "density": 4050,
+            "unemploymentEst1932": 35.0,
+            "industries": [
+                "Meatpacking",
+                "Steel",
+                "Manufacturing",
+                "Rail"
+            ],
+            "majorEmployers": [
+                "Union Stock Yards",
+                "US Steel",
+                "Pullman"
+            ],
+            "notes": "Second largest city. Massive industrial job losses."
+        },
+        {
+            "fips": "26163",
+            "name": "Wayne County",
+            "state": "Michigan",
+            "seatCity": "Detroit",
+            "population1930": 1888946,
+            "population1920": 1177645,
+            "populationChange": 60.4,
+            "density": 2836,
+            "unemploymentEst1932": 48.0,
+            "industries": [
+                "Automobiles",
+                "Manufacturing"
+            ],
+            "majorEmployers": [
+                "Ford Motor",
+                "General Motors",
+                "Chrysler"
+            ],
+            "notes": "Auto capital. 48% unemployment by 1932 - among worst in nation."
+        },
+        {
+            "fips": "42003",
+            "name": "Allegheny County",
+            "state": "Pennsylvania",
+            "seatCity": "Pittsburgh",
+            "population1930": 1411539,
+            "population1920": 1185808,
+            "populationChange": 19.0,
+            "density": 1930,
+            "unemploymentEst1932": 37.0,
+            "industries": [
+                "Steel",
+                "Coal",
+                "Glass"
+            ],
+            "majorEmployers": [
+                "US Steel",
+                "Westinghouse",
+                "Pittsburgh Plate Glass"
+            ],
+            "notes": "Steel capital. Collapsed with construction industry."
+        },
+        {
+            "fips": "06037",
+            "name": "Los Angeles County",
+            "state": "California",
+            "seatCity": "Los Angeles",
+            "population1930": 2208492,
+            "population1920": 936455,
+            "populationChange": 135.8,
+            "density": 540,
+            "unemploymentEst1932": 28.0,
+            "industries": [
+                "Oil",
+                "Film",
+                "Agriculture",
+                "Aircraft"
+            ],
+            "majorEmployers": [
+                "Standard Oil",
+                "MGM",
+                "Douglas Aircraft"
+            ],
+            "notes": "Rapid growth. Destination for Dust Bowl migrants."
+        },
+        {
+            "fips": "48201",
+            "name": "Harris County",
+            "state": "Texas",
+            "seatCity": "Houston",
+            "population1930": 359328,
+            "population1920": 186667,
+            "populationChange": 92.5,
+            "density": 202,
+            "unemploymentEst1932": 22.0,
+            "industries": [
+                "Oil",
+                "Shipping",
+                "Cotton"
+            ],
+            "majorEmployers": [
+                "Humble Oil",
+                "Port of Houston",
+                "Hughes Tool"
+            ],
+            "notes": "Oil boom continued through Depression."
+        },
+        {
+            "fips": "39035",
+            "name": "Cuyahoga County",
+            "state": "Ohio",
+            "seatCity": "Cleveland",
+            "population1930": 1201455,
+            "population1920": 943495,
+            "populationChange": 27.3,
+            "density": 2626,
+            "unemploymentEst1932": 50.0,
+            "industries": [
+                "Steel",
+                "Auto Parts",
+                "Machinery"
+            ],
+            "majorEmployers": [
+                "Republic Steel",
+                "General Electric",
+                "Standard Oil Ohio"
+            ],
+            "notes": "50% unemployment - worst of major cities."
+        },
+        {
+            "fips": "25025",
+            "name": "Suffolk County",
+            "state": "Massachusetts",
+            "seatCity": "Boston",
+            "population1930": 879536,
+            "population1920": 835522,
+            "populationChange": 5.3,
+            "density": 15080,
+            "unemploymentEst1932": 30.0,
+            "industries": [
+                "Finance",
+                "Education",
+                "Manufacturing",
+                "Fishing"
+            ],
+            "majorEmployers": [
+                "Harvard",
+                "MIT",
+                "State Street"
+            ],
+            "notes": "Stable financial center but manufacturing hit hard."
+        },
+        {
+            "fips": "42101",
+            "name": "Philadelphia County",
+            "state": "Pennsylvania",
+            "seatCity": "Philadelphia",
+            "population1930": 1950961,
+            "population1920": 1823779,
+            "populationChange": 7.0,
+            "density": 14663,
+            "unemploymentEst1932": 32.0,
+            "industries": [
+                "Manufacturing",
+                "Textiles",
+                "Machinery"
+            ],
+            "majorEmployers": [
+                "Baldwin Locomotive",
+                "Stetson Hats",
+                "RCA"
+            ],
+            "notes": "Slow decline began before Depression."
+        },
+        {
+            "fips": "29510",
+            "name": "St. Louis City",
+            "state": "Missouri",
+            "seatCity": "St. Louis",
+            "population1930": 821960,
+            "population1920": 772897,
+            "populationChange": 6.4,
+            "density": 13279,
+            "unemploymentEst1932": 30.0,
+            "industries": [
+                "Brewing",
+                "Manufacturing",
+                "Rail"
+            ],
+            "majorEmployers": [
+                "Anheuser-Busch",
+                "McDonnell Aircraft",
+                "Union Station"
+            ],
+            "notes": "Gateway to the West. Rail hub."
+        },
+        {
+            "fips": "40109",
+            "name": "Oklahoma County",
+            "state": "Oklahoma",
+            "seatCity": "Oklahoma City",
+            "population1930": 211389,
+            "population1920": 106818,
+            "populationChange": 97.9,
+            "density": 286,
+            "unemploymentEst1932": 29.0,
+            "industries": [
+                "Oil",
+                "Agriculture",
+                "Meatpacking"
+            ],
+            "majorEmployers": [
+                "Oklahoma Oil Fields",
+                "Armour Meat"
+            ],
+            "notes": "Oil cushioned Depression but Dust Bowl devastating."
+        },
+        {
+            "fips": "20173",
+            "name": "Sedgwick County",
+            "state": "Kansas",
+            "seatCity": "Wichita",
+            "population1930": 136330,
+            "population1920": 92234,
+            "populationChange": 47.8,
+            "density": 134,
+            "unemploymentEst1932": 26.0,
+            "industries": [
+                "Aircraft",
+                "Agriculture",
+                "Oil"
+            ],
+            "majorEmployers": [
+                "Cessna",
+                "Beech Aircraft",
+                "Coleman Company"
+            ],
+            "notes": "Aircraft industry began here. Dust Bowl region."
+        }
+    ]
+}

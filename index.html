@@ -1,89 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Metallic Event: Ruhr 1936</title>
-    <link rel="stylesheet" href="/src/style.css" />
-  </head>
-  <body>
-    <div id="map"></div>
-    
-    <!-- Status Overlay -->
-    <div id="overlay">
-      <h1>RUHR SECTOR: 1936</h1>
-      <div class="stats">
-        <div class="stat-item">MODE: <span id="mode-val">SATELLITE</span></div>
-        <div class="stat-item">ZOOM: <span id="zoom-val">10</span></div>
-      </div>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Great Depression: A Visual History</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container"></div>
+
+  <!-- Status Overlay -->
+  <div id="overlay">
+    <h1 id="scenario-title">LOADING SCENARIO...</h1>
+    <div class="stats">
+      <div class="stat-item">DATE: <span id="date-val">---</span></div>
+      <div class="stat-item">MODE: <span id="mode-val">SATELLITE</span></div>
+      <div class="stat-item">ZOOM: <span id="zoom-val">10</span></div>
+      <div class="stat-item">ALT: <span id="altitude-val">---</span></div>
+    </div>
+    <div class="time-controls">
+      <button id="play-btn" class="play-btn">▶ PLAY</button>
+      <button id="time-day" title="Advance 1 day">+DAY</button>
+      <button id="time-week" title="Advance 1 week">+WEEK</button>
+      <button id="time-month" title="Advance 1 month">+MONTH</button>
+      <button id="time-year" title="Advance 1 year">+YEAR</button>
+    </div>
+    <div class="button-row">
       <button id="toggle-btn">TOGGLE VIEW</button>
       <button id="settings-btn">⚙ SETTINGS</button>
     </div>
+  </div>
 
-    <!-- Control Panel -->
-    <div id="control-panel" class="hidden">
-      <div class="panel-header">
-        <h2>LAYER CONTROLS</h2>
-        <button id="close-panel">✕</button>
+  <!-- Region Detail Panel -->
+  <div id="region-panel" class="hidden">
+    <div class="panel-header">
+      <h2 id="region-name">SELECT A REGION</h2>
+      <button id="close-region-panel">✕</button>
+    </div>
+    <div class="region-stats">
+      <div class="stat-row">
+        <span class="stat-label">State:</span>
+        <span id="region-state">-</span>
       </div>
-
-      <!-- Contour Controls -->
-      <div class="control-section">
-        <h3>CONTOURS</h3>
-        <label>
-          <span>Opacity</span>
-          <input type="range" id="contour-opacity" min="0" max="100" value="60" />
-          <span id="contour-opacity-val">60%</span>
-        </label>
-        <label>
-          <span>Width</span>
-          <input type="range" id="contour-width" min="1" max="10" value="3" />
-          <span id="contour-width-val">3</span>
-        </label>
-        <label>
-          <span>Glow</span>
-          <input type="range" id="contour-glow" min="0" max="10" value="2" />
-          <span id="contour-glow-val">2</span>
-        </label>
+      <div class="stat-row">
+        <span class="stat-label">Population (1930):</span>
+        <span id="region-pop">-</span>
       </div>
-
-      <!-- Cityscape Controls -->
-      <div class="control-section">
-        <h3>CITYSCAPE</h3>
-        <label>
-          <span>Opacity</span>
-          <input type="range" id="city-opacity" min="0" max="100" value="80" />
-          <span id="city-opacity-val">80%</span>
-        </label>
-        <label>
-          <span>Glow Intensity</span>
-          <input type="range" id="city-glow" min="0" max="10" value="4" />
-          <span id="city-glow-val">4</span>
-        </label>
+      <div class="stat-row">
+        <span class="stat-label">Pop. Change since 1920:</span>
+        <span id="region-pop-change">-</span>
       </div>
-
-      <!-- Layer Toggles -->
-      <div class="control-section">
-        <h3>LAYERS</h3>
-        <label class="toggle-label">
-          <input type="checkbox" id="toggle-contours" checked />
-          <span>Contours</span>
-        </label>
-        <label class="toggle-label">
-          <input type="checkbox" id="toggle-cities" checked />
-          <span>Cities</span>
-        </label>
-        <label class="toggle-label">
-          <input type="checkbox" id="toggle-water" checked />
-          <span>Water</span>
-        </label>
-        <label class="toggle-label">
-          <input type="checkbox" id="toggle-roads" checked />
-          <span>Roads</span>
-        </label>
+      <div class="stat-row unemployment">
+        <span class="stat-label">Unemployment (1932 est.):</span>
+        <span id="region-unemployment">-</span>
       </div>
     </div>
+    <div class="region-industries">
+      <h3>INDUSTRIES</h3>
+      <ul id="region-industries-list"></ul>
+    </div>
+    <div class="region-employers">
+      <h3>MAJOR EMPLOYERS</h3>
+      <ul id="region-employers-list"></ul>
+    </div>
+    <div class="region-notes">
+      <p id="region-notes-text"></p>
+    </div>
+  </div>
 
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+  <!-- Control Panel -->
+  <div id="control-panel" class="hidden">
+    <div class="panel-header">
+      <h2>LAYER CONTROLS</h2>
+      <button id="close-panel">✕</button>
+    </div>
+
+    <!-- Contour Controls -->
+    <div class="control-section">
+      <h3>CONTOURS</h3>
+      <label>
+        <span>Opacity</span>
+        <input type="range" id="contour-opacity" min="0" max="100" value="60" />
+        <span id="contour-opacity-val">60%</span>
+      </label>
+      <label>
+        <span>Width</span>
+        <input type="range" id="contour-width" min="1" max="10" value="3" />
+        <span id="contour-width-val">3</span>
+      </label>
+      <label>
+        <span>Glow</span>
+        <input type="range" id="contour-glow" min="0" max="10" value="2" />
+        <span id="contour-glow-val">2</span>
+      </label>
+    </div>
+
+    <!-- Hillshade Controls -->
+    <div class="control-section">
+      <h3>TERRAIN</h3>
+      <div class="radio-group">
+        <label class="radio-label">
+          <input type="radio" name="terrain-mode" value="both" checked />
+          <span>Both</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="terrain-mode" value="hillshade" />
+          <span>Hillshade</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="terrain-mode" value="contours" />
+          <span>Contours</span>
+        </label>
+      </div>
+      <label>
+        <span>Hillshade Intensity</span>
+        <input type="range" id="hillshade-intensity" min="0" max="100" value="50" />
+        <span id="hillshade-intensity-val">50</span>
+      </label>
+    </div>
+
+    <!-- Cityscape Controls -->
+    <div class="control-section">
+      <h3>CITYSCAPE</h3>
+      <label>
+        <span>Opacity</span>
+        <input type="range" id="city-opacity" min="0" max="100" value="80" />
+        <span id="city-opacity-val">80%</span>
+      </label>
+      <label>
+        <span>Glow Intensity</span>
+        <input type="range" id="city-glow" min="0" max="10" value="4" />
+        <span id="city-glow-val">4</span>
+      </label>
+    </div>
+
+    <!-- Road Detail Controls -->
+    <div class="control-section">
+      <h3>ROADS</h3>
+      <label>
+        <span>Min Zoom (detail level)</span>
+        <input type="range" id="road-min-zoom" min="0" max="10" value="4" />
+        <span id="road-min-zoom-val">4</span>
+      </label>
+      <p style="font-size: 11px; color: #888; margin-top: 4px;">
+        Lower = see roads zoomed out more. Set to 0 for max detail.
+      </p>
+    </div>
+
+    <!-- Layer Toggles -->
+    <div class="control-section">
+      <h3>LAYERS</h3>
+      <label class="toggle-label">
+        <input type="checkbox" id="toggle-hillshade" checked />
+        <span>Hillshade</span>
+      </label>
+      <label class="toggle-label">
+        <input type="checkbox" id="toggle-contours" checked />
+        <span>Contours</span>
+      </label>
+      <label class="toggle-label">
+        <input type="checkbox" id="toggle-cities" checked />
+        <span>Cities</span>
+      </label>
+      <label class="toggle-label">
+        <input type="checkbox" id="toggle-water" checked />
+        <span>Water</span>
+      </label>
+      <label class="toggle-label">
+        <input type="checkbox" id="toggle-roads" checked />
+        <span>Roads</span>
+      </label>
+      <label class="toggle-label">
+        <input type="checkbox" id="toggle-rail" checked />
+        <span>Rail</span>
+      </label>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
 </html>

@@ -1,0 +1,289 @@
+{
+    "events": [
+        {
+            "id": "evt-001",
+            "timestamp": "1929-09-03",
+            "type": "economic",
+            "scope": "national",
+            "title": "Stock Market Peak",
+            "description": "The Dow Jones Industrial Average reaches an all-time high of 381.17 points. Speculation is rampant as investors borrow heavily to buy stocks on margin.",
+            "location": {
+                "coordinates": [
+                    -74.0060,
+                    40.7128
+                ],
+                "name": "New York City"
+            },
+            "nations": [
+                "USA"
+            ],
+            "causes": [],
+            "effects": [
+                "evt-002"
+            ],
+            "probability": 1,
+            "aiGenerated": false,
+            "tags": [
+                "wall-street",
+                "bubble",
+                "peak"
+            ]
+        },
+        {
+            "id": "evt-002",
+            "timestamp": "1929-10-24",
+            "type": "economic",
+            "scope": "global",
+            "title": "Black Thursday",
+            "description": "Panic selling begins on Wall Street. 12.9 million shares trade hands as prices collapse. Bankers attempt to stabilize the market with coordinated buying.",
+            "location": {
+                "coordinates": [
+                    -74.0060,
+                    40.7128
+                ],
+                "name": "New York Stock Exchange"
+            },
+            "nations": [
+                "USA",
+                "GBR",
+                "FRA",
+                "DEU"
+            ],
+            "causes": [
+                "evt-001"
+            ],
+            "effects": [
+                "evt-003"
+            ],
+            "probability": 1,
+            "aiGenerated": false,
+            "tags": [
+                "crash",
+                "panic",
+                "wall-street"
+            ]
+        },
+        {
+            "id": "evt-003",
+            "timestamp": "1929-10-29",
+            "type": "economic",
+            "scope": "global",
+            "title": "Black Tuesday",
+            "description": "The stock market completely collapses. 16 million shares are traded. The Dow loses 12% of its value in a single day. Fortunes are wiped out. The Great Depression begins.",
+            "location": {
+                "coordinates": [
+                    -74.0060,
+                    40.7128
+                ],
+                "name": "New York Stock Exchange"
+            },
+            "nations": [
+                "USA",
+                "GBR",
+                "FRA",
+                "DEU",
+                "JPN"
+            ],
+            "causes": [
+                "evt-002"
+            ],
+            "effects": [
+                "evt-004",
+                "evt-005"
+            ],
+            "probability": 1,
+            "aiGenerated": false,
+            "tags": [
+                "crash",
+                "depression",
+                "catastrophe"
+            ]
+        },
+        {
+            "id": "evt-004",
+            "timestamp": "1930-06-17",
+            "type": "political",
+            "scope": "national",
+            "title": "Smoot-Hawley Tariff Act",
+            "description": "President Hoover signs the Smoot-Hawley Tariff Act, raising import duties to record levels. Trading partners retaliate, global trade collapses.",
+            "location": {
+                "coordinates": [
+                    -77.0369,
+                    38.9072
+                ],
+                "name": "Washington D.C."
+            },
+            "nations": [
+                "USA"
+            ],
+            "causes": [
+                "evt-003"
+            ],
+            "effects": [
+                "evt-006"
+            ],
+            "probability": 1,
+            "aiGenerated": false,
+            "tags": [
+                "tariff",
+                "protectionism",
+                "trade-war"
+            ]
+        },
+        {
+            "id": "evt-005",
+            "timestamp": "1930-12-11",
+            "type": "economic",
+            "scope": "national",
+            "title": "Bank of United States Collapses",
+            "description": "The Bank of United States in New York fails, the largest bank failure in American history. 400,000 depositors lose their savings. Bank runs spread.",
+            "location": {
+                "coordinates": [
+                    -73.9857,
+                    40.7484
+                ],
+                "name": "New York City"
+            },
+            "nations": [
+                "USA"
+            ],
+            "causes": [
+                "evt-003"
+            ],
+            "effects": [
+                "evt-007"
+            ],
+            "probability": 1,
+            "aiGenerated": false,
+            "tags": [
+                "bank-failure",
+                "panic",
+                "savings-lost"
+            ]
+        },
+        {
+            "id": "evt-006",
+            "timestamp": "1931-05-11",
+            "type": "economic",
+            "scope": "regional",
+            "title": "Austrian Credit-Anstalt Fails",
+            "description": "Austria's largest bank collapses, triggering a European banking crisis. Capital flees Germany and Austria.",
+            "location": {
+                "coordinates": [
+                    16.3738,
+                    48.2082
+                ],
+                "name": "Vienna"
+            },
+            "nations": [
+                "AUT",
+                "DEU"
+            ],
+            "causes": [
+                "evt-004"
+            ],
+            "effects": [
+                "evt-008"
+            ],
+            "probability": 1,
+            "aiGenerated": false,
+            "tags": [
+                "banking-crisis",
+                "europe",
+                "contagion"
+            ]
+        },
+        {
+            "id": "evt-007",
+            "timestamp": "1932-07-08",
+            "type": "economic",
+            "scope": "global",
+            "title": "Market Bottom",
+            "description": "The Dow Jones reaches its lowest point of 41.22, down 89% from the 1929 peak. Unemployment in the US reaches 24%.",
+            "location": {
+                "coordinates": [
+                    -74.0060,
+                    40.7128
+                ],
+                "name": "New York City"
+            },
+            "nations": [
+                "USA",
+                "GBR",
+                "DEU",
+                "FRA"
+            ],
+            "causes": [
+                "evt-005"
+            ],
+            "effects": [
+                "evt-009"
+            ],
+            "probability": 1,
+            "aiGenerated": false,
+            "tags": [
+                "bottom",
+                "unemployment",
+                "despair"
+            ]
+        },
+        {
+            "id": "evt-008",
+            "timestamp": "1933-01-30",
+            "type": "political",
+            "scope": "global",
+            "title": "Hitler Becomes Chancellor",
+            "description": "Adolf Hitler is appointed Chancellor of Germany. The Weimar Republic, weakened by economic chaos, begins its transformation into the Third Reich.",
+            "location": {
+                "coordinates": [
+                    13.4050,
+                    52.5200
+                ],
+                "name": "Berlin"
+            },
+            "nations": [
+                "DEU"
+            ],
+            "causes": [
+                "evt-006"
+            ],
+            "effects": [],
+            "probability": 1,
+            "aiGenerated": false,
+            "tags": [
+                "nazi",
+                "fascism",
+                "political-upheaval"
+            ]
+        },
+        {
+            "id": "evt-009",
+            "timestamp": "1933-03-04",
+            "type": "political",
+            "scope": "national",
+            "title": "FDR Inaugurated - New Deal Begins",
+            "description": "Franklin D. Roosevelt becomes President. 'The only thing we have to fear is fear itself.' He declares a bank holiday and launches the New Deal.",
+            "location": {
+                "coordinates": [
+                    -77.0369,
+                    38.9072
+                ],
+                "name": "Washington D.C."
+            },
+            "nations": [
+                "USA"
+            ],
+            "causes": [
+                "evt-007"
+            ],
+            "effects": [],
+            "probability": 1,
+            "aiGenerated": false,
+            "tags": [
+                "new-deal",
+                "recovery",
+                "hope"
+            ]
+        }
+    ]
+}

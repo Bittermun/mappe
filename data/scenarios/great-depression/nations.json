@@ -1,0 +1,108 @@
+{
+    "id": "great-depression",
+    "name": "The Great Depression",
+    "description": "Experience the global economic collapse that began with Black Tuesday (October 29, 1929) and reshaped the world order through the 1930s.",
+    "startDate": "1929-07-01",
+    "focusRegion": {
+        "center": [
+            -74.0060,
+            40.7128
+        ],
+        "zoom": 4,
+        "comment": "New York City - epicenter of the crash"
+    },
+    "nations": [
+        {
+            "id": "USA",
+            "name": "United States of America",
+            "capital": "Washington D.C.",
+            "population": 121770000,
+            "gdp": 104600000000,
+            "government": "republic",
+            "leader": {
+                "name": "Herbert Hoover",
+                "title": "President",
+                "inOfficeSince": "1929-03-04"
+            },
+            "stability": 75,
+            "economicHealth": 85
+        },
+        {
+            "id": "GBR",
+            "name": "United Kingdom",
+            "capital": "London",
+            "population": 45866000,
+            "gdp": 23800000000,
+            "government": "constitutional_monarchy",
+            "leader": {
+                "name": "Ramsay MacDonald",
+                "title": "Prime Minister",
+                "inOfficeSince": "1929-06-05"
+            },
+            "stability": 70,
+            "economicHealth": 65
+        },
+        {
+            "id": "DEU",
+            "name": "Weimar Republic (Germany)",
+            "capital": "Berlin",
+            "population": 62411000,
+            "gdp": 27100000000,
+            "government": "republic",
+            "leader": {
+                "name": "Paul von Hindenburg",
+                "title": "President",
+                "inOfficeSince": "1925-05-12"
+            },
+            "stability": 45,
+            "economicHealth": 55,
+            "note": "Fragile democracy burdened by war reparations"
+        },
+        {
+            "id": "FRA",
+            "name": "French Third Republic",
+            "capital": "Paris",
+            "population": 41228000,
+            "gdp": 20100000000,
+            "government": "republic",
+            "leader": {
+                "name": "Raymond Poincaré",
+                "title": "President",
+                "inOfficeSince": "1913-02-18"
+            },
+            "stability": 60,
+            "economicHealth": 70
+        },
+        {
+            "id": "JPN",
+            "name": "Empire of Japan",
+            "capital": "Tokyo",
+            "population": 64450000,
+            "gdp": 8900000000,
+            "government": "constitutional_monarchy",
+            "leader": {
+                "name": "Hirohito",
+                "title": "Emperor",
+                "inOfficeSince": "1926-12-25"
+            },
+            "stability": 70,
+            "economicHealth": 60
+        },
+        {
+            "id": "SUN",
+            "name": "Soviet Union",
+            "capital": "Moscow",
+            "population": 153800000,
+            "gdp": 14200000000,
+            "government": "communist",
+            "leader": {
+                "name": "Joseph Stalin",
+                "title": "General Secretary",
+                "inOfficeSince": "1924-01-21"
+            },
+            "stability": 65,
+            "economicHealth": 50,
+            "note": "Isolated from capitalist crisis, implementing Five-Year Plan"
+        }
+    ]
+}
