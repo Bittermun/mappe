@@ -77,12 +77,12 @@ Too subtle = invisible; too strong = distracting. **Solutions**:
 **Recommendation**: Phase 1 = click labels for basic info, Phase 2 = state boundaries
 
 ### Extra Data Details
-| Feature | Display | Priority |
-|---------|---------|----------|
-| Camera altitude | Main overlay ("Viewing from 50,000 ft") | High - fun, easy |
-| Elevation at cursor | Corner panel on hover | Medium |
-| Lat/lng coordinates | Corner panel (power user) | Low |
-| Distance tool | Button-activated | Low |
+| Feature | Display | Priority | Status |
+|---------|---------|----------|--------|
+| Camera altitude | Main overlay ("Viewing from 50,000 ft") | High | ✅ DONE |
+| Elevation at cursor | Corner panel on hover | Medium | |
+| Lat/lng coordinates | Corner panel (power user) | Low | |
+| Distance tool | Button-activated | Low | |
 
 **"Flight Deck" layout:**
 ```
@@ -98,15 +98,15 @@ Camera altitude formula: `altitude_meters = 40075000 / (2^zoom)`
 
 ## Quick Wins (Easy + High Impact)
 
-| Feature | Time | Notes |
-|---------|------|-------|
-| **Keyboard shortcuts** | 15m | Space=play, arrows=time |
-| **Timeline progress bar** | 20m | 1929━━●━━1933 position indicator |
-| **Event toast notifications** | 20m | Popups when events fire during auto-play |
-| **Fullscreen button** | 5m | One line: `document.documentElement.requestFullscreen()` |
-| **Quick-jump buttons** | 15m | "Black Tuesday", "FDR Inauguration" presets |
-| **URL state** | 30m | Share links with date/location embedded |
-| **Ambient audio** | 30m | Era music, radio static (TNO-style) |
+| Feature | Time | Notes | Status |
+|---------|------|-------|--------|
+| **Keyboard shortcuts** | 15m | Space=play, arrows=time | ✅ DONE |
+| **Timeline progress bar** | 20m | 1929━━●━━1933 position indicator | |
+| **Event toast notifications** | 20m | Popups when events fire | ✅ DONE |
+| **Fullscreen button** | 5m | Key 'F' implemented | ✅ DONE |
+| **Quick-jump buttons** | 15m | "Black Tuesday", etc. | |
+| **URL state** | 30m | Share links with date/location | |
+| **Ambient audio** | 30m | Era music, radio static | |
 
 ### Top 3 Priority
 1. Keyboard shortcuts (professional feel) ✅ DONE
@@ -115,21 +115,27 @@ Camera altitude formula: `altitude_meters = 40075000 / (2^zoom)`
 
 ---
 
+## Session History (Feb 9, 2026)
+
+### Implemented Features
+1. **Camera Altitude Display**: Added dynamic altitude calculation in feet/miles based on map zoom level.
+2. **Keyboard Shortcuts Layer**: 
+   - `M`: Toggle View Mode
+   - `F`: Toggle Fullscreen
+   - `S`: Toggle Settings
+   - `+/-`: Zoom Controls
+   - `Space/Arrows`: Timeline Controls (Play/Pause, Advance Time)
+3. **Timeline Engine Integration**: Connected the core engine to UI controls, enabling real-time date updates and scenario loading.
+4. **Event Toast System**: Visual notification system for historical events with slide-in animations and auto-fade.
+
+### Methodology
+**Locate → Understand → Write → Verify**
+- **Locate**: Use `grep` and `outline` to find integration points.
+- **Understand**: Review existing classes (e.g., `TimelineEngine`) for API compatibility.
+- **Write**: Implement changes using minimal, pattern-matched code.
+- **Verify**: Run `tsc --noEmit` and manual browser testing.
+
+---
+
 ## Historical Map Data (1929)
-
-### What We Have
-- `world_1920.geojson` - Historical country boundaries
-- `county-census-1930.json` - US population data
-- `nations.json` - Nation metadata
-
-### Roads Problem
-**Natural Earth** = modern roads only, no historical. In 1929:
-- Interstates didn't exist (built 1956+)
-- Most roads unpaved
-- Rail was dominant transport
-
-### Recommendation
-**Emphasize rail, de-emphasize roads.** More historically accurate for 1929.
-- Rail network was extensive and well-documented
-- OpenHistoricalMap has some historical rail data
-- Overlay `world_1920.geojson` for period-accurate borders
+... [rest of the existing content]
