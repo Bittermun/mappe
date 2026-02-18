@@ -4,6 +4,9 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import mlcontour from 'maplibre-contour';
 import { timelineEngine } from './engine/timeline';
 import { loadGreatDepressionScenario } from './engine/scenarioLoader';
+import { FlightDeck } from './ui/FlightDeck';
+import { createTacticalRipple } from './visual/rippleEffect';
+import { StockTicker } from './engine/StockTicker';
 
 // === DEM SOURCE FOR CONTOURS ===
 const demSource = new mlcontour.DemSource({
@@ -15,22 +18,21 @@ demSource.setupMaplibre(maplibregl);
 
 let currentMode: 'satellite' | 'contour' = 'satellite';
 
+// === UI COMPONENTS ===
+const flightDeck = new FlightDeck();
+const stockTicker = new StockTicker();
+
 // === TIMELINE STATE ===
 let isPlaying = false;
 let playInterval: number | null = null;
 const PLAY_SPEED_MS = 500; // Advance time every 500ms when playing
 
 function updateDateDisplay(): void {
-    const dateEl = document.getElementById('date-val');
+    const date = timelineEngine.getCurrentDate();
+    flightDeck.updateDate(date);
+
+    // Scenario title is outside FlightDeck scope for now, or could be added
     const titleEl = document.getElementById('scenario-title');
-    if (dateEl) {
-        const date = timelineEngine.getCurrentDate();
-        dateEl.textContent = date.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        });
-    }
     if (titleEl) {
         const scenario = timelineEngine.getScenario();
         titleEl.textContent = scenario?.name || 'LOADING SCENARIO...';
@@ -59,9 +61,46 @@ function advanceTime(amount: 'day' | 'week' | 'month' | 'year' = 'day'): void {
     const events = timelineEngine.advanceTime(amount);
     updateDateDisplay();
 
-    // Show toast for each triggered event
+    // Economic Logic: Simple systemic drift based on date (simulated for now)
+    const currentDate = timelineEngine.getCurrentDate();
+    const gdpBase = 100;
+    const yearFactor = Math.max(0, (currentDate.getFullYear() - 1929) * 20 + (currentDate.getMonth() * 1.5));
+    const currentGDP = Math.max(10, gdpBase - (currentDate >= new Date('1929-10-29') ? yearFactor : 0));
+    const socialStability = Math.max(5, 85 - (currentGDP < 50 ? (50 - currentGDP) : 0));
+
+    flightDeck.updateGauges(currentGDP, socialStability);
+
+    // Update Stock Market Telemetry
+    const stocks = stockTicker.update(currentDate);
+    flightDeck.updateStocks(stocks);
+
+    // Show toast and ticker for each triggered event
     for (const event of events) {
         showToast(event.title, event.description, new Date(event.timestamp));
+        flightDeck.addSignal(event.title, new Date(event.timestamp));
+
+        // Trigger Tactical Ripple and Auto-Zoom
+        if (event.location && event.location.coordinates) {
+            const coords: [number, number] = [
+                event.location.coordinates[0],
+                event.location.coordinates[1]
+            ];
+
+            createTacticalRipple(map, {
+                center: coords,
+                color: '#00ffff', // TNO Cyan
+                maxRadius: 100,
+                durationMs: 2000
+            });
+
+            map.flyTo({
+                center: coords,
+                zoom: 5,
+                speed: 0.8,
+                curve: 1,
+                essential: true
+            });
+        }
     }
 }
 
@@ -117,6 +156,11 @@ const contourStyle: maplibregl.StyleSpecification = {
         openfree: {
             type: 'vector',
             url: 'https://tiles.openfreemap.org/planet'
+        },
+        ohm: {
+            type: 'vector',
+            tiles: ['https://vtiles.openhistoricalmap.org/maps/osm/{z}/{x}/{y}.pbf'],
+            maxzoom: 14
         }
     },
     layers: [
@@ -245,33 +289,43 @@ const contourStyle: maplibregl.StyleSpecification = {
             }
         },
 
-        // === RAIL (YELLOW STRATEGIC LINES) ===
+        // === HISTORICAL RAIL (AMBER STRATEGIC LINES - 1930) ===
         {
-            id: 'rail-glow',
+            id: 'rail-historical-glow',
             type: 'line',
-            source: 'openfree',
+            source: 'ohm',
             'source-layer': 'transportation',
-            filter: ['==', ['get', 'class'], 'rail'],
+            filter: [
+                'all',
+                ['==', ['get', 'class'], 'rail'],
+                ['<=', ['get', 'start_decdate'], 1930.5],
+                ['>=', ['get', 'end_decdate'], 1929.5]
+            ],
             minzoom: 5,
             paint: {
-                'line-color': '#444400',
-                'line-width': ['interpolate', ['linear'], ['zoom'], 5, 1, 10, 3],
-                'line-blur': 2,
-                'line-opacity': 0.5
+                'line-color': '#664400',
+                'line-width': ['interpolate', ['linear'], ['zoom'], 5, 1.5, 10, 4],
+                'line-blur': 3,
+                'line-opacity': 0.6
             }
         },
         {
-            id: 'rail-core',
+            id: 'rail-historical-core',
             type: 'line',
-            source: 'openfree',
+            source: 'ohm',
             'source-layer': 'transportation',
-            filter: ['==', ['get', 'class'], 'rail'],
+            filter: [
+                'all',
+                ['==', ['get', 'class'], 'rail'],
+                ['<=', ['get', 'start_decdate'], 1930.5],
+                ['>=', ['get', 'end_decdate'], 1929.5]
+            ],
             minzoom: 5,
             paint: {
-                'line-color': '#aaaa00',
-                'line-width': ['interpolate', ['linear'], ['zoom'], 5, 0.5, 10, 1.5],
-                'line-opacity': 0.8,
-                'line-dasharray': [4, 2]
+                'line-color': '#ffaa00',
+                'line-width': ['interpolate', ['linear'], ['zoom'], 5, 0.6, 10, 1.8],
+                'line-opacity': 0.9,
+                'line-dasharray': [3, 1]
             }
         },
 
@@ -372,8 +426,7 @@ function toggleMode() {
         currentMode = 'satellite';
         map.setStyle('https://tiles.openfreemap.org/styles/liberty');
     }
-    const modeEl = document.getElementById('mode-val');
-    if (modeEl) modeEl.textContent = currentMode.toUpperCase();
+    flightDeck.setMode(currentMode);
 }
 
 // === CONTROL PANEL LOGIC ===
@@ -452,7 +505,18 @@ function setupControls() {
     setupToggle('toggle-cities', ['buildings-glow', 'buildings-core', 'urban-glow', 'urban-core']);
     setupToggle('toggle-water', ['water-glow', 'water-core']);
     setupToggle('toggle-roads', ['roads-glow', 'roads-core']);
-    setupToggle('toggle-rail', ['rail-glow', 'rail-core']);
+    setupToggle('toggle-rail', ['rail-historical-glow', 'rail-historical-core']);
+
+    // CRT Toggle (DOM element, not MapLibre layer)
+    const crtCheckbox = document.getElementById('toggle-crt') as HTMLInputElement;
+    crtCheckbox?.addEventListener('change', () => {
+        const overlay = document.querySelector('.scanline-overlay');
+        if (crtCheckbox.checked) {
+            overlay?.classList.remove('hidden');
+        } else {
+            overlay?.classList.add('hidden');
+        }
+    });
 
     // Road Detail at Low Zoom slider
     setupSlider('road-min-zoom', (val) => {
@@ -498,6 +562,13 @@ map.on('load', async () => {
     // Load the Great Depression scenario
     try {
         await loadGreatDepressionScenario();
+
+        // Wire timeline bounds into FlightDeck for progress bar
+        const scenario = timelineEngine.getScenario();
+        if (scenario?.endDate) {
+            flightDeck.setTimelineBounds(scenario.startDate, scenario.endDate);
+        }
+
         updateDateDisplay();
         console.log('[Timeline] Scenario loaded, date controls active');
     } catch (error) {
@@ -513,35 +584,21 @@ map.on('load', async () => {
     document.getElementById('time-month')?.addEventListener('click', () => advanceTime('month'));
     document.getElementById('time-year')?.addEventListener('click', () => advanceTime('year'));
 
-    const updateZoom = () => {
-        const zoomEl = document.getElementById('zoom-val');
-        if (zoomEl) zoomEl.textContent = map.getZoom().toFixed(1);
-    };
+    // Market Theater Toggles
+    document.getElementById('expand-market-btn')?.addEventListener('click', () => {
+        flightDeck.toggleMarketTheater(true);
+    });
+    document.getElementById('close-market-btn')?.addEventListener('click', () => {
+        flightDeck.toggleMarketTheater(false);
+    });
+
 
     const updateAltitude = () => {
-        const altEl = document.getElementById('altitude-val');
-        if (!altEl) return;
-
         const zoom = map.getZoom();
-        // Earth circumference ~40,075 km. At zoom 0, you see whole Earth.
-        // Approximate camera altitude in meters: 40075000 / 2^zoom
-        const altitudeMeters = 40075000 / Math.pow(2, zoom);
-        const altitudeFeet = altitudeMeters * 3.28084;
-
-        // Format nicely: show miles if > 50,000 ft, otherwise feet
-        if (altitudeFeet > 50000) {
-            const miles = altitudeFeet / 5280;
-            altEl.textContent = miles >= 1000
-                ? `${(miles / 1000).toFixed(0)}K mi`
-                : `${miles.toFixed(0)} mi`;
-        } else {
-            altEl.textContent = `${(altitudeFeet / 1000).toFixed(0)}K ft`;
-        }
+        flightDeck.updateAltitude(zoom);
     };
 
-    map.on('zoom', updateZoom);
     map.on('zoom', updateAltitude);
-    updateZoom();
     updateAltitude();
 
     setupControls();
@@ -574,6 +631,11 @@ document.addEventListener('keydown', (e) => {
             break;
         case 'KeyS':
             document.getElementById('control-panel')?.classList.toggle('hidden');
+            break;
+        case 'KeyK': // Market Ticker
+            const theater = document.getElementById('market-operations-theater');
+            const isHidden = theater?.classList.contains('hidden');
+            flightDeck.toggleMarketTheater(!!isHidden);
             break;
 
         // Zoom controls
@@ -608,3 +670,4 @@ document.addEventListener('keydown', (e) => {
 });
 
 console.log('[Keyboard] Shortcuts active: M=mode, F=fullscreen, S=settings, +/-=zoom, Arrows=time');
+

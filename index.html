@@ -10,30 +10,141 @@
 
 <body>
   <div id="map"></div>
+  <div class="scanline-overlay"></div>
 
   <!-- Toast Notifications -->
   <div id="toast-container"></div>
 
-  <!-- Status Overlay -->
-  <div id="overlay">
-    <h1 id="scenario-title">LOADING SCENARIO...</h1>
-    <div class="stats">
-      <div class="stat-item">DATE: <span id="date-val">---</span></div>
-      <div class="stat-item">MODE: <span id="mode-val">SATELLITE</span></div>
-      <div class="stat-item">ZOOM: <span id="zoom-val">10</span></div>
-      <div class="stat-item">ALT: <span id="altitude-val">---</span></div>
+  <!-- TACTICAL HUD OVERLAY -->
+  <div id="hud-overlay">
+
+    <!-- TOP-LEFT: MISSION RECORDS -->
+    <div class="hud-module tl">
+      <div class="bracket-tl"></div>
+      <div class="hud-content">
+        <div class="hud-title" id="scenario-title">LOADING RECORDS...</div>
+        <div class="telemetry-row">
+          <span class="label">DATE TRACKER:</span>
+          <span class="value" id="date-val">---</span>
+        </div>
+        <div class="telemetry-row">
+          <span class="label">OPERATION MODE:</span>
+          <span class="value" id="mode-val">OBSERVATION</span>
+        </div>
+        <div class="mt-10">
+          <button id="toggle-btn" class="mini-btn">SWITCH MAP VIEW</button>
+        </div>
+      </div>
     </div>
-    <div class="time-controls">
-      <button id="play-btn" class="play-btn">▶ PLAY</button>
-      <button id="time-day" title="Advance 1 day">+DAY</button>
-      <button id="time-week" title="Advance 1 week">+WEEK</button>
-      <button id="time-month" title="Advance 1 month">+MONTH</button>
-      <button id="time-year" title="Advance 1 year">+YEAR</button>
+
+    <!-- TOP-RIGHT: TELEGRAM LOGS -->
+    <div class="hud-module tr">
+      <div class="bracket-tr"></div>
+      <div class="hud-content">
+        <div class="module-header">TELEGRAM LOGS</div>
+        <div id="ticker-tape" class="compact-ticker">
+          <div class="ticker-entry placeholder">AWAITING TELEGRAMS...</div>
+        </div>
+      </div>
     </div>
-    <div class="button-row">
-      <button id="toggle-btn">TOGGLE VIEW</button>
-      <button id="settings-btn">⚙ SETTINGS</button>
+
+    <!-- BOTTOM-LEFT: SYSTEM STATISTICS -->
+    <div class="hud-module bl">
+      <div class="bracket-bl"></div>
+      <div class="hud-content">
+        <div class="module-header">NATIONAL STATISTICS</div>
+        <div class="gauge-module">
+          <div class="gauge-row">
+            <span class="label">GDP</span>
+            <div class="gauge-track">
+              <div id="gdp-gauge" class="gauge-fill"></div>
+            </div>
+            <span id="gdp-val" class="value">---</span>
+          </div>
+          <div class="gauge-row">
+            <span class="label">SOC</span>
+            <div class="gauge-track">
+              <div id="social-gauge" class="gauge-fill"></div>
+            </div>
+            <span id="social-val" class="value">---</span>
+          </div>
+        </div>
+        <div class="mini-graph" id="economic-mini-graph"></div>
+        <div class="stat-grid-compact">
+          <div class="stat-unit">ALT:<span id="altitude-val">---</span></div>
+          <div class="stat-unit">ZOM:<span id="zoom-val">---</span></div>
+        </div>
+      </div>
     </div>
+
+    <!-- BOTTOM-RIGHT: FINANCIAL TICKER -->
+    <div class="hud-module br" id="market-hud-compact">
+      <div class="bracket-br"></div>
+      <div class="hud-content">
+        <div class="module-header">MARKET FEED <button id="expand-market-btn" class="mini-btn">OPEN BOARD</button></div>
+        <div id="stock-list" class="market-ticker-compact"></div>
+      </div>
+    </div>
+
+    <!-- TIMELINE CENTER HUD -->
+    <div id="timeline-hud">
+      <div class="timeline-container-hud">
+        <span id="timeline-start" class="label">----</span>
+        <div class="timeline-track-hud">
+          <div id="timeline-fill" class="fill"></div>
+          <div id="timeline-thumb" class="thumb"></div>
+        </div>
+        <span id="timeline-end" class="label">----</span>
+      </div>
+      <div class="time-controls-hud">
+        <button id="play-btn">PLAY</button>
+        <button id="time-day">+1D</button>
+        <button id="time-week">+1W</button>
+        <button id="time-month">+1M</button>
+      </div>
+    </div>
+
+    <!-- PROBE TELEMETRY (DYNAMIC) -->
+    <div id="probe-hud" class="hidden">
+      <div class="bracket-probe"></div>
+      <div id="region-info-content"></div>
+    </div>
+
+    <!-- MARKET OPERATIONS THEATER (LARGE PANEL) -->
+    <div id="market-operations-theater" class="hidden">
+      <div class="theater-background"></div>
+      <div class="theater-content">
+        <div class="theater-header">
+          <div class="title-block">
+            <span class="classification">CONFIDENTIAL: MARKET LOGS</span>
+            <h2>INDUSTRIAL FINANCIAL BOARD</h2>
+          </div>
+          <button id="close-market-btn" class="close-btn">CLOSE BOARD</button>
+        </div>
+
+        <div class="theater-grid">
+          <div class="theater-left">
+            <div class="visual-feed">
+              <div class="dither-overlay"></div>
+              <div class="feed-label">NYSE FLOOR - STATION 04</div>
+              <!-- Visual effects container -->
+            </div>
+            <div class="market-stats-theater">
+              <div class="stat-unit">DOW JONES:<span id="dow-val-bg">---</span></div>
+              <div class="stat-unit">STABILITY:<span id="mkt-stability">STABLE</span></div>
+            </div>
+          </div>
+          <div class="theater-right">
+            <div class="graph-container-large">
+              <div class="graph-header">INDUSTRIAL TREND CHART</div>
+              <div id="market-large-graph" style="height: 100%; width: 100%;"></div>
+            </div>
+            <div id="stock-list-large" class="market-ticker-large"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- Region Detail Panel -->
@@ -155,6 +266,10 @@
     <!-- Layer Toggles -->
     <div class="control-section">
       <h3>LAYERS</h3>
+      <label class="toggle-label">
+        <input type="checkbox" id="toggle-crt" checked />
+        <span>Scanlines (CRT)</span>
+      </label>
       <label class="toggle-label">
         <input type="checkbox" id="toggle-hillshade" checked />
         <span>Hillshade</span>

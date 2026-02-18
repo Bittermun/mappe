@@ -5,7 +5,7 @@
 ### Easy (1-2 hours)
 1. **Super Events** - Full-screen dramatic overlays with glow + typewriter text
 2. **Event Cards** - TNO-style dark cards with neon borders
-3. **Typewriter Effect** - Character-by-character text reveal
+3. **Typewriter Effect** - Character-by-character text reveal *(Low priority — pure polish, toasts auto-fade too fast for it to land)*
 4. **Map Ripples** - Pulse effects at event locations
 
 ### Medium (2-4 hours)
@@ -79,7 +79,7 @@ Too subtle = invisible; too strong = distracting. **Solutions**:
 ### Extra Data Details
 | Feature | Display | Priority | Status |
 |---------|---------|----------|--------|
-| Camera altitude | Main overlay ("Viewing from 50,000 ft") | High | ✅ DONE |
+| Camera altitude | Main overlay ("Viewing from 50,000 ft") | High | DONE ✅ |
 | Elevation at cursor | Corner panel on hover | Medium | |
 | Lat/lng coordinates | Corner panel (power user) | Low | |
 | Distance tool | Button-activated | Low | |

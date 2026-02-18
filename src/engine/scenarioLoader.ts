@@ -29,12 +29,19 @@ export async function loadGreatDepressionScenario(): Promise<void> {
             timestamp: new Date(e.timestamp)
         }));
 
+        // Compute endDate from the last event's timestamp
+        const lastEventDate = seedEvents.reduce((latest: Date, e: TimelineEvent) => {
+            const d = new Date(e.timestamp);
+            return d > latest ? d : latest;
+        }, new Date(nationsData.startDate));
+
         // Create scenario object
         const scenario: Scenario = {
             id: nationsData.id,
             name: nationsData.name,
             description: nationsData.description,
             startDate: new Date(nationsData.startDate),
+            endDate: lastEventDate,
             focusRegion: nationsData.focusRegion,
             initialNations,
             seedEvents,

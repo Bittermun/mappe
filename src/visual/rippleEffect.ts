@@ -1,7 +1,8 @@
 /**
- * Ripple Effect for Crash Events
+ * Tactical Ripple Effect (Premium Edition)
  * 
- * Creates visual ripple emanating from event locations
+ * Creates geographically-anchored concentric pulses with bloom and decay.
+ * Designed for the "Tactical Command Terminal" aesthetic.
  */
 
 import type maplibregl from 'maplibre-gl';
@@ -11,21 +12,22 @@ interface RippleConfig {
     color: string;
     maxRadius: number;
     durationMs: number;
+    ringCount?: number;
 }
 
 let rippleLayerId = 0;
 
 /**
- * Create a pulsing ripple effect at the given coordinates
+ * Create a single expanding tactical ring
  */
-export function createRipple(
+function createPremiumRing(
     map: maplibregl.Map,
-    config: RippleConfig
+    config: RippleConfig,
+    delayMs: number,
+    ringIndex: number
 ): void {
-    const id = `ripple-${rippleLayerId++}`;
-    const startTime = Date.now();
+    const id = `ripple-p-${rippleLayerId++}-${ringIndex}`;
 
-    // Create a temporary source for this ripple
     map.addSource(id, {
         type: 'geojson',
         data: {
@@ -41,43 +43,77 @@ export function createRipple(
         }
     });
 
-    // Add the ripple layer
+    // Layer 1: The Glow Bloom (Blurred Circle)
+    const glowId = `${id}-glow`;
     map.addLayer({
-        id: id,
+        id: glowId,
         type: 'circle',
         source: id,
         paint: {
-            'circle-color': config.color,
             'circle-radius': 0,
-            'circle-opacity': 0.8,
-            'circle-stroke-color': config.color,
-            'circle-stroke-width': 3,
-            'circle-stroke-opacity': 1
+            'circle-color': config.color,
+            'circle-opacity': 0,
+            'circle-blur': 1, // Corrected: blurred circle instead of stroke blur
         }
     });
 
-    // Animate the ripple
+    // Layer 2: The Core Ring (Sharp Stroke)
+    const coreId = `${id}-core`;
+    map.addLayer({
+        id: coreId,
+        type: 'circle',
+        source: id,
+        paint: {
+            'circle-radius': 0,
+            'circle-opacity': 0,
+            'circle-stroke-color': '#ffffff', // Flash white core
+            'circle-stroke-width': 2,
+            'circle-stroke-opacity': 0
+        }
+    });
+
+    const startTime = Date.now() + delayMs;
+
     function animate() {
-        const elapsed = Date.now() - startTime;
+        const now = Date.now();
+        if (now < startTime) {
+            requestAnimationFrame(animate);
+            return;
+        }
+
+        const elapsed = now - startTime;
         const progress = Math.min(elapsed / config.durationMs, 1);
 
-        // Ease-out exponential
-        const t = 1 - Math.pow(1 - progress, 3);
-
+        // Quintic ease-out for a "shockwave" feel: very fast start, slow finish
+        const t = 1 - Math.pow(1 - progress, 5);
         const radius = config.maxRadius * t;
-        const opacity = 0.8 * (1 - progress);
 
-        if (map.getLayer(id)) {
-            map.setPaintProperty(id, 'circle-radius', radius);
-            map.setPaintProperty(id, 'circle-opacity', opacity * 0.3);
-            map.setPaintProperty(id, 'circle-stroke-opacity', opacity);
+        // Opacity Logic: Sharp flash -> Phosphor decay
+        let opacity = 0;
+        if (progress < 0.1) {
+            opacity = progress * 10; // Rapid flash
+        } else {
+            opacity = 1 - Math.pow((progress - 0.1) / 0.9, 2); // Quadratic decay
+        }
+
+        if (map.getLayer(coreId)) {
+            map.setPaintProperty(coreId, 'circle-radius', radius);
+            map.setPaintProperty(coreId, 'circle-stroke-opacity', opacity * 0.9);
+            map.setPaintProperty(coreId, 'circle-stroke-color', progress < 0.3 ? '#ffffff' : config.color);
+            map.setPaintProperty(coreId, 'circle-stroke-width', 2 * (1 - progress));
+        }
+
+        if (map.getLayer(glowId)) {
+            map.setPaintProperty(glowId, 'circle-radius', radius * 1.1); // Slightly larger glow
+            map.setPaintProperty(glowId, 'circle-opacity', opacity * 0.3);
+            map.setPaintProperty(glowId, 'circle-blur', 1.5 * progress);
         }
 
         if (progress < 1) {
             requestAnimationFrame(animate);
         } else {
-            // Clean up
-            if (map.getLayer(id)) map.removeLayer(id);
+            // Cleanup
+            [coreId, glowId].forEach(l => { if (map.getLayer(l)) map.removeLayer(l); });
             if (map.getSource(id)) map.removeSource(id);
         }
     }
@@ -86,56 +122,34 @@ export function createRipple(
 }
 
 /**
- * Create the iconic Black Tuesday ripple from Wall Street
+ * Create a premium multi-ring radar pulse
  */
-export function createBlackTuesdayRipple(map: maplibregl.Map): void {
-    // Wall Street coordinates
-    const wallStreet: [number, number] = [-74.006, 40.7128];
+export function createTacticalRipple(
+    map: maplibregl.Map,
+    config: RippleConfig
+): void {
+    const ringCount = config.ringCount || 3;
+    const interval = 300; // Delay between rings
 
-    // Create multiple expanding waves
-    createRipple(map, {
-        center: wallStreet,
-        color: '#ff0000',
-        maxRadius: 50,
-        durationMs: 2000
-    });
-
-    // Second wave delayed
-    setTimeout(() => {
-        createRipple(map, {
-            center: wallStreet,
-            color: '#ff4400',
-            maxRadius: 80,
-            durationMs: 3000
-        });
-    }, 500);
-
-    // Third larger wave
-    setTimeout(() => {
-        createRipple(map, {
-            center: wallStreet,
-            color: '#ff6600',
-            maxRadius: 120,
-            durationMs: 4000
-        });
-    }, 1000);
+    for (let i = 0; i < ringCount; i++) {
+        // Rings get progressively larger and slower
+        createPremiumRing(map, {
+            ...config,
+            maxRadius: config.maxRadius * (1 + i * 0.2),
+            durationMs: config.durationMs + (i * 500)
+        }, i * interval, i);
+    }
 }
 
 /**
- * Create a bank failure pulse at a city location
+ * Convenience for Black Tuesday (Sublime Cinematic Pulse)
  */
-export function createBankFailurePulse(
-    map: maplibregl.Map,
-    coordinates: [number, number],
-    cityName: string
-): void {
-    console.log('[Ripple] Bank failure at:', cityName);
-
-    // Red pulse for bank failure
-    createRipple(map, {
-        center: coordinates,
-        color: '#ff2222',
-        maxRadius: 30,
-        durationMs: 1500
+export function triggerBlackTuesdayRipple(map: maplibregl.Map): void {
+    createTacticalRipple(map, {
+        center: [-74.006, 40.7128],
+        color: '#00ffff',
+        maxRadius: 180,
+        durationMs: 2500,
+        ringCount: 4
     });
 }
