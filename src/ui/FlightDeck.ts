@@ -28,6 +28,9 @@ export class FlightDeck {
     private economicGraph: Sparkline | null = null;
     private marketLargeGraph: Sparkline | null = null;
 
+    private dowHistory: number[] = [];
+    private currentTimeframe: '1Y' | '5Y' | 'MAX' = '1Y';
+
     // Timeline boundaries
     private startDate: Date | null = null;
     private endDate: Date | null = null;
@@ -60,9 +63,54 @@ export class FlightDeck {
         // Initialize Sparklines
         try {
             this.economicGraph = new Sparkline('economic-mini-graph', 50, '#00ffff');
-            this.marketLargeGraph = new Sparkline('market-large-graph', 100, '#00ffff');
+            this.marketLargeGraph = new Sparkline('market-large-graph', 365, '#00ffff');
         } catch (e) {
             console.warn('[FlightDeck] Sparkline containers not found');
+        }
+
+        this.setupTimeframeControls();
+    }
+
+    private setupTimeframeControls(): void {
+        const tf1y = document.getElementById('tf-1y');
+        const tf5y = document.getElementById('tf-5y');
+        const tfMax = document.getElementById('tf-max');
+
+        tf1y?.addEventListener('click', () => this.setTimeframe('1Y'));
+        tf5y?.addEventListener('click', () => this.setTimeframe('5Y'));
+        tfMax?.addEventListener('click', () => this.setTimeframe('MAX'));
+    }
+
+    public setTimeframe(tf: '1Y' | '5Y' | 'MAX'): void {
+        this.currentTimeframe = tf;
+
+        // Update UI states
+        ['tf-1y', 'tf-5y', 'tf-max'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) {
+                if (id === `tf-${tf.toLowerCase()}`) btn.classList.add('active');
+                else btn.classList.remove('active');
+            }
+        });
+
+        // Update Gauge/Graph
+        if (this.marketLargeGraph) {
+            let dataSlice: number[] = [];
+            let points = 365;
+
+            if (tf === '1Y') {
+                dataSlice = this.dowHistory.slice(-365);
+                points = 365;
+            } else if (tf === '5Y') {
+                dataSlice = this.dowHistory.slice(-1825);
+                points = 1825;
+            } else {
+                dataSlice = [...this.dowHistory];
+                points = Math.max(365, this.dowHistory.length);
+            }
+
+            this.marketLargeGraph.setMaxPoints(points);
+            this.marketLargeGraph.setData(dataSlice);
         }
     }
 
@@ -170,8 +218,17 @@ export class FlightDeck {
             const dow = stocks.find(s => s.symbol === 'DOW');
             if (dow) {
                 this.dowValBg.textContent = dow.currentPrice.toFixed(2);
+                this.dowHistory.push(dow.currentPrice);
+                if (this.dowHistory.length > 2000) this.dowHistory.shift();
+
                 if (this.marketLargeGraph) {
-                    this.marketLargeGraph.addPoint(dow.currentPrice);
+                    const tf = this.currentTimeframe;
+                    let dataSlice: number[] = [];
+                    if (tf === '1Y') dataSlice = this.dowHistory.slice(-365);
+                    else if (tf === '5Y') dataSlice = this.dowHistory.slice(-1825);
+                    else dataSlice = [...this.dowHistory];
+
+                    this.marketLargeGraph.setData(dataSlice);
                 }
             }
         }

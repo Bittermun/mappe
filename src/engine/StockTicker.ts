@@ -51,7 +51,7 @@ export class StockTicker {
             stock.change = ((stock.currentPrice - prevPrice) / prevPrice) * 100;
 
             stock.history.push(stock.currentPrice);
-            if (stock.history.length > 50) stock.history.shift();
+            if (stock.history.length > 2000) stock.history.shift();
         });
 
         return this.stocks;

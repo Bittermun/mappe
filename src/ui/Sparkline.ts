@@ -46,6 +46,15 @@ export class Sparkline {
         this.draw();
     }
 
+    public setData(data: number[]) {
+        this.data = [...data];
+        this.draw();
+    }
+
+    public setMaxPoints(max: number) {
+        this.maxPoints = max;
+    }
+
     private draw() {
         const { width, height } = this.canvas;
         const ctx = this.ctx;
