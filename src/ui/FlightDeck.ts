@@ -218,8 +218,14 @@ export class FlightDeck {
             const dow = stocks.find(s => s.symbol === 'DOW');
             if (dow) {
                 this.dowValBg.textContent = dow.currentPrice.toFixed(2);
-                this.dowHistory.push(dow.currentPrice);
-                if (this.dowHistory.length > 2000) this.dowHistory.shift();
+
+                // Initialize history from seed if empty
+                if (this.dowHistory.length === 0 && dow.history.length > 0) {
+                    this.dowHistory = [...dow.history];
+                } else {
+                    this.dowHistory.push(dow.currentPrice);
+                    if (this.dowHistory.length > 2000) this.dowHistory.shift();
+                }
 
                 if (this.marketLargeGraph) {
                     const tf = this.currentTimeframe;

@@ -22,6 +22,40 @@ export class StockTicker {
         { symbol: 'M', company: 'Montgomery Ward', startPrice: 156.80, currentPrice: 156.80, change: 0, history: [] }
     ];
 
+    constructor() {
+        this.generateHistoricalSeed();
+    }
+
+    private generateHistoricalSeed(): void {
+        const points = 2000;
+        const seedHistory: number[] = [];
+
+        // DOW Anchors (synthesized)
+        // 1924: ~100
+        // 1927: ~200
+        // 1928: ~300
+        // July 1929: ~340
+
+        let val = 95.0;
+        for (let i = 0; i < points; i++) {
+            const progress = i / points;
+            // Exponential-ish growth for the bull market
+            const drift = 0.05 + (progress * 0.15);
+            const volatility = 1.2;
+
+            val += (Math.random() - 0.45) * volatility + drift;
+            val = Math.max(80, val);
+            seedHistory.push(val);
+        }
+
+        // Apply seed to stocks (scaled)
+        this.stocks.forEach(stock => {
+            const scale = stock.startPrice / seedHistory[seedHistory.length - 1];
+            stock.history = seedHistory.map(v => v * scale);
+            stock.currentPrice = stock.history[stock.history.length - 1];
+        });
+    }
+
     private crashDate = new Date('1929-10-24');
 
     /**
