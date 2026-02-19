@@ -24,14 +24,14 @@ export class TimelineEngine {
 
     constructor() {
         this.worldState = {
-            date: new Date(),
+            date: new Date('1929-01-01'),
             nations: new Map(),
             activeEvents: [],
             projectedEvents: [],
             historicalEvents: []
         };
         this.timeState = {
-            currentDate: new Date(),
+            currentDate: new Date('1929-01-01'),
             speed: 'paused',
             isPaused: true
         };
