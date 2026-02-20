@@ -31,7 +31,6 @@ export class FlightDeck {
 
     private dowHistory: number[] = [];
     private currentTimeframe: '1Y' | '5Y' | 'MAX' = '1Y';
-    private currentTheaterTab: 'MARKET' | 'TRADE' = 'MARKET';
     private tradeBureau: TradeBureau;
 
     // Trade UI Elements
@@ -101,8 +100,6 @@ export class FlightDeck {
     }
 
     public switchTheaterTab(tab: 'MARKET' | 'TRADE'): void {
-        this.currentTheaterTab = tab;
-
         if (tab === 'MARKET') {
             this.marketBoard?.classList.remove('hidden');
             this.tradeBoard?.classList.add('hidden');
