@@ -30,27 +30,50 @@ export class StockTicker {
         const points = 2000;
         const seedHistory: number[] = [];
 
-        // DOW Anchors (synthesized)
-        // 1924: ~100
-        // 1927: ~200
-        // 1928: ~300
-        // July 1929: ~340
+        // Accurate DOW Anchors (Synthesized Monthly/Yearly)
+        const anchors = [
+            { pos: 0, val: 95.0 },    // Jan 1924
+            { pos: 400, val: 110.0 },  // Jan 1925
+            { pos: 800, val: 155.0 },  // Jan 1926
+            { pos: 1200, val: 155.0 }, // Jan 1927
+            { pos: 1600, val: 200.0 }, // Jan 1928
+            { pos: 1750, val: 220.0 }, // Jun 1928
+            { pos: 1850, val: 280.0 }, // Nov 1928
+            { pos: 1900, val: 300.0 }, // Jan 1929
+            { pos: 1940, val: 315.0 }, // Mar 1929
+            { pos: 1970, val: 325.0 }, // May 1929
+            { pos: 2000, val: 341.0 }  // Jul 1, 1929
+        ];
 
-        let val = 95.0;
+        let currentAnchorIndex = 0;
+        let val = anchors[0].val;
+
         for (let i = 0; i < points; i++) {
-            const progress = i / points;
-            // Exponential-ish growth for the bull market
-            const drift = 0.05 + (progress * 0.15);
-            const volatility = 1.2;
+            if (currentAnchorIndex < anchors.length - 1 && i >= anchors[currentAnchorIndex + 1].pos) {
+                currentAnchorIndex++;
+            }
 
-            val += (Math.random() - 0.45) * volatility + drift;
-            val = Math.max(80, val);
-            seedHistory.push(val);
+            const nextAnchor = anchors[currentAnchorIndex + 1] || anchors[currentAnchorIndex];
+            const currentAnchor = anchors[currentAnchorIndex];
+            const segmentLen = nextAnchor.pos - currentAnchor.pos || 1;
+            const progress = (i - currentAnchor.pos) / segmentLen;
+
+            // Targeted drift to hit the next anchor
+            const targetVal = currentAnchor.val + (nextAnchor.val - currentAnchor.val) * progress;
+            const deviation = (val - targetVal);
+            const correction = -deviation * 0.1; // Pull towards target path
+
+            const volatility = 0.8;
+            val += (Math.random() - 0.5) * volatility + correction;
+
+            // Scale noise based on index value
+            const noise = (Math.random() - 0.5) * (val * 0.005);
+            seedHistory.push(val + noise);
         }
 
         // Apply seed to stocks (scaled)
         this.stocks.forEach(stock => {
-            const scale = stock.startPrice / seedHistory[seedHistory.length - 1];
+            const scale = stock.startPrice / 381.17; // Scale relative to DOW peak
             stock.history = seedHistory.map(v => v * scale);
             stock.currentPrice = stock.history[stock.history.length - 1];
         });
