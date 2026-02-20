@@ -1,5 +1,5 @@
 import { Sparkline } from './Sparkline';
-import { TradeBureau, TradeSnapshot } from '../engine/TradeBureau';
+import { TradeBureau } from '../engine/TradeBureau';
 
 export class FlightDeck {
     private dateEl: HTMLElement | null;
