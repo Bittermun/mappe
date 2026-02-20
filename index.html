@@ -119,15 +119,18 @@
             <span class="classification">CONFIDENTIAL: MARKET LOGS</span>
             <h2>INDUSTRIAL FINANCIAL BOARD</h2>
           </div>
+          <div class="theater-tabs">
+            <button id="tab-market" class="tab-btn active">FINANCIAL FEED</button>
+            <button id="tab-trade" class="tab-btn">TRADE STATISTICS</button>
+          </div>
           <button id="close-market-btn" class="close-btn">CLOSE BOARD</button>
         </div>
 
-        <div class="theater-grid">
+        <div id="market-board" class="theater-grid">
           <div class="theater-left">
             <div class="visual-feed">
               <div class="dither-overlay"></div>
               <div class="feed-label">NYSE FLOOR - STATION 04</div>
-              <!-- Visual effects container -->
             </div>
             <div class="market-stats-theater">
               <div class="stat-unit">DOW JONES:<span id="dow-val-bg">---</span></div>
@@ -147,6 +150,31 @@
               <div id="market-large-graph" style="height: 100%; width: 100%;"></div>
             </div>
             <div id="stock-list-large" class="market-ticker-large"></div>
+          </div>
+        </div>
+
+        <div id="trade-board" class="theater-grid hidden">
+          <div class="theater-left">
+            <div class="trade-stats-card">
+              <div class="feed-label">DEPT. OF COMMERCE - BUREAU OF TRADE</div>
+              <div class="large-val-display">
+                <span class="label">TOTAL EXPORT VOLUME</span>
+                <span id="trade-total-val" class="value">$0.00B</span>
+              </div>
+              <div class="report-section">
+                <h3>LARGEST EXPORTS (BY SECTOR)</h3>
+                <div id="export-bar-chart" class="bar-chart"></div>
+              </div>
+            </div>
+          </div>
+          <div class="theater-right">
+            <div class="report-section">
+              <h3>PRINCIPAL TRADING PARTNERS</h3>
+              <div class="pie-report-layout">
+                <div id="partner-pie-chart" class="pie-chart"></div>
+                <div id="partner-legend" class="chart-legend"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

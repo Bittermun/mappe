@@ -1114,6 +1114,22 @@ input[type="range"]::-moz-range-thumb {
   display: block;
 }
 
+.theater-tabs {
+  display: flex;
+  gap: 15px;
+  margin-left: 20px;
+}
+
+.theater-tabs .tab-btn {
+  font-size: 0.8rem;
+  padding: 5px 15px;
+  opacity: 0.6;
+}
+
+.theater-tabs .tab-btn.active {
+  opacity: 1;
+}
+
 .theater-grid {
   display: grid;
   grid-template-columns: 450px 1fr;
@@ -1236,6 +1252,114 @@ input[type="range"]::-moz-range-thumb {
   grid-template-columns: 80px 1fr 100px 80px;
   font-size: 0.85rem;
   padding: 8px 0;
+}
+
+/* Trade Bureau Styles */
+.trade-stats-card {
+  flex-grow: 1;
+  background: rgba(0, 255, 255, 0.03);
+  border: 1px solid rgba(0, 255, 255, 0.1);
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  position: relative;
+}
+
+.large-val-display {
+  display: flex;
+  flex-direction: column;
+}
+
+.large-val-display .label {
+  font-size: 0.7rem;
+  color: var(--accent-color);
+  opacity: 0.6;
+  letter-spacing: 2px;
+}
+
+.large-val-display .value {
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--accent-color);
+  text-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+}
+
+.report-section h3 {
+  font-size: 0.8rem;
+  color: var(--accent-orange);
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 165, 0, 0.2);
+  padding-bottom: 5px;
+}
+
+.bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--text-color);
+}
+
+.bar-track {
+  height: 8px;
+  background: rgba(0, 255, 255, 0.05);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  position: relative;
+}
+
+.bar-fill {
+  height: 100%;
+  background: var(--accent-color);
+  box-shadow: 0 0 10px var(--accent-color);
+  transition: width 0.5s ease-out;
+}
+
+.pie-report-layout {
+  display: flex;
+  gap: 40px;
+  align-items: center;
+}
+
+.pie-chart {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 255, 255, 0.2);
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
+  position: relative;
+}
+
+.chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.75rem;
+  color: var(--text-color);
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 /* Close & Mini Buttons */

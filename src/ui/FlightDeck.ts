@@ -1,4 +1,5 @@
 import { Sparkline } from './Sparkline';
+import { TradeBureau, TradeSnapshot } from '../engine/TradeBureau';
 
 export class FlightDeck {
     private dateEl: HTMLElement | null;
@@ -30,6 +31,16 @@ export class FlightDeck {
 
     private dowHistory: number[] = [];
     private currentTimeframe: '1Y' | '5Y' | 'MAX' = '1Y';
+    private currentTheaterTab: 'MARKET' | 'TRADE' = 'MARKET';
+    private tradeBureau: TradeBureau;
+
+    // Trade UI Elements
+    private marketBoard: HTMLElement | null;
+    private tradeBoard: HTMLElement | null;
+    private tradeTotalVal: HTMLElement | null;
+    private exportBarChart: HTMLElement | null;
+    private partnerPieChart: HTMLElement | null;
+    private partnerLegend: HTMLElement | null;
 
     // Timeline boundaries
     private startDate: Date | null = null;
@@ -60,6 +71,15 @@ export class FlightDeck {
         this.probeHUD = document.getElementById('probe-hud');
         this.regionInfoContent = document.getElementById('region-info-content');
 
+        // Trade Elements
+        this.tradeBureau = new TradeBureau();
+        this.marketBoard = document.getElementById('market-board');
+        this.tradeBoard = document.getElementById('trade-board');
+        this.tradeTotalVal = document.getElementById('trade-total-val');
+        this.exportBarChart = document.getElementById('export-bar-chart');
+        this.partnerPieChart = document.getElementById('partner-pie-chart');
+        this.partnerLegend = document.getElementById('partner-legend');
+
         // Initialize Sparklines
         try {
             this.economicGraph = new Sparkline('economic-mini-graph', 50, '#00ffff');
@@ -69,6 +89,33 @@ export class FlightDeck {
         }
 
         this.setupTimeframeControls();
+        this.setupTabControls();
+    }
+
+    private setupTabControls(): void {
+        const tabMkt = document.getElementById('tab-market');
+        const tabTrd = document.getElementById('tab-trade');
+
+        tabMkt?.addEventListener('click', () => this.switchTheaterTab('MARKET'));
+        tabTrd?.addEventListener('click', () => this.switchTheaterTab('TRADE'));
+    }
+
+    public switchTheaterTab(tab: 'MARKET' | 'TRADE'): void {
+        this.currentTheaterTab = tab;
+
+        if (tab === 'MARKET') {
+            this.marketBoard?.classList.remove('hidden');
+            this.tradeBoard?.classList.add('hidden');
+            document.getElementById('tab-market')?.classList.add('active');
+            document.getElementById('tab-trade')?.classList.remove('active');
+            // Force resize graph
+            setTimeout(() => this.marketLargeGraph?.resize(), 50);
+        } else {
+            this.marketBoard?.classList.add('hidden');
+            this.tradeBoard?.classList.remove('hidden');
+            document.getElementById('tab-market')?.classList.remove('active');
+            document.getElementById('tab-trade')?.classList.add('active');
+        }
     }
 
     private setupTimeframeControls(): void {
@@ -140,6 +187,64 @@ export class FlightDeck {
 
         // Update progress bar
         this.updateProgress(date);
+
+        // Update Trade Bureau
+        this.updateTradeBureau(date);
+    }
+
+    private updateTradeBureau(date: Date): void {
+        const snapshot = this.tradeBureau.getSnapshot(date);
+
+        if (this.tradeTotalVal) {
+            this.tradeTotalVal.textContent = `$${snapshot.totalVolume.toFixed(2)}B`;
+        }
+
+        this.renderExportBars(snapshot.exports);
+        this.renderPartnerPie(snapshot.partners);
+    }
+
+    private renderExportBars(exports: any[]): void {
+        if (!this.exportBarChart) return;
+
+        const maxVal = Math.max(...exports.map(e => e.value));
+
+        this.exportBarChart.innerHTML = exports.map(e => {
+            const perc = (e.value / maxVal) * 100;
+            return `
+                <div class="bar-row">
+                    <div class="bar-label">
+                        <span>${e.label}</span>
+                        <span>$${e.value.toFixed(2)}B</span>
+                    </div>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width: ${perc}%; background: ${e.color}; box-shadow: 0 0 10px ${e.color}"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    private renderPartnerPie(partners: any[]): void {
+        if (!this.partnerPieChart || !this.partnerLegend) return;
+
+        const total = partners.reduce((acc, p) => acc + p.value, 0);
+        let currentPerc = 0;
+
+        const gradient = partners.map(p => {
+            const start = currentPerc;
+            const perc = (p.value / total) * 100;
+            currentPerc += perc;
+            return `${p.color} ${start.toFixed(1)}% ${currentPerc.toFixed(1)}%`;
+        }).join(', ');
+
+        this.partnerPieChart.style.background = `conic-gradient(${gradient})`;
+
+        this.partnerLegend.innerHTML = partners.map(p => `
+            <div class="legend-item">
+                <div class="legend-color" style="background: ${p.color}"></div>
+                <span>${p.label} (${((p.value / total) * 100).toFixed(0)}%)</span>
+            </div>
+        `).join('');
     }
 
     /**
