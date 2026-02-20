@@ -33,6 +33,7 @@
         </div>
         <div class="mt-10">
           <button id="toggle-btn" class="mini-btn">SWITCH MAP VIEW</button>
+          <button id="county-mode-btn" class="mini-btn county-btn">[ C ] COUNTY MAP</button>
         </div>
       </div>
     </div>
@@ -108,6 +109,52 @@
     <div id="probe-hud" class="hidden">
       <div class="bracket-probe"></div>
       <div id="region-info-content"></div>
+    </div>
+
+    <!-- COUNTY INFO PANEL -->
+    <div id="county-info-panel" class="hidden">
+      <div class="county-panel-header">
+        <span class="county-panel-classification">BUREAU OF LABOR STATISTICS</span>
+        <div class="county-panel-title-row">
+          <div>
+            <h3 id="county-panel-name">SELECT A COUNTY</h3>
+            <span id="county-panel-state" class="county-panel-state"></span>
+          </div>
+          <div id="county-distress-badge" class="distress-badge">---</div>
+        </div>
+      </div>
+      <div class="county-panel-body">
+        <div class="county-stat-row">
+          <span class="cs-label">UNEMPLOYMENT</span>
+          <div class="cs-bar-track">
+            <div id="county-unemployment-bar" class="cs-bar-fill"></div>
+          </div>
+          <span id="county-unemployment-val" class="cs-value">--%</span>
+        </div>
+        <div class="county-stat-row">
+          <span class="cs-label">INDUSTRIAL IDX</span>
+          <div class="cs-bar-track">
+            <div id="county-industrial-bar" class="cs-bar-fill industrial"></div>
+          </div>
+          <span id="county-industrial-val" class="cs-value">--</span>
+        </div>
+        <div class="county-data-grid">
+          <div class="county-data-cell">
+            <span class="cs-label">POPULATION</span>
+            <span id="county-population" class="county-data-val">---</span>
+          </div>
+          <div class="county-data-cell">
+            <span class="cs-label">PRIMARY INDUSTRY</span>
+            <span id="county-industry" class="county-data-val">---</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COUNTY HOVER TOOLTIP -->
+    <div id="county-tooltip" class="county-tooltip hidden">
+      <span id="county-tooltip-name"></span>
+      <span id="county-tooltip-unemp"></span>
     </div>
 
     <!-- MARKET OPERATIONS THEATER (LARGE PANEL) -->

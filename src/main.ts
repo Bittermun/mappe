@@ -7,6 +7,7 @@ import { loadGreatDepressionScenario } from './engine/scenarioLoader';
 import { FlightDeck } from './ui/FlightDeck';
 import { createTacticalRipple } from './visual/rippleEffect';
 import { StockTicker } from './engine/StockTicker';
+import { COUNTY_RECORDS, getCountySnapshot } from './engine/CountyData';
 
 // === DEM SOURCE FOR CONTOURS ===
 const demSource = new mlcontour.DemSource({
@@ -22,6 +23,11 @@ let currentMode: 'satellite' | 'contour' = 'satellite';
 const flightDeck = new FlightDeck();
 const stockTicker = new StockTicker();
 
+// === COUNTY MODE STATE ===
+let countyModeActive = false;
+let countyLayersLoaded = false;
+let selectedCountyFips: string | null = null;
+
 // === TIMELINE STATE ===
 let isPlaying = false;
 let playInterval: number | null = null;
@@ -36,6 +42,11 @@ function updateDateDisplay(): void {
     if (titleEl) {
         const scenario = timelineEngine.getScenario();
         titleEl.textContent = scenario?.name || 'LOADING SCENARIO...';
+    }
+
+    // Refresh county panel if a county is selected
+    if (selectedCountyFips) {
+        updateCountyPanel(selectedCountyFips);
     }
 }
 
@@ -101,6 +112,11 @@ function advanceTime(amount: 'day' | 'week' | 'month' | 'year' = 'day'): void {
                 essential: true
             });
         }
+    }
+
+    // Re-color county layer if active
+    if (countyModeActive && countyLayersLoaded) {
+        updateCountyColors();
     }
 }
 
@@ -411,10 +427,10 @@ const contourStyle: maplibregl.StyleSpecification = {
 const map = new maplibregl.Map({
     container: 'map',
     style: 'https://tiles.openfreemap.org/styles/liberty',
-    center: [7.01, 51.45],
-    zoom: 11,
-    pitch: 60,
-    bearing: 45,
+    center: [-96, 38],
+    zoom: 4.5,
+    pitch: 30,
+    bearing: 0,
 });
 
 // === MODE TOGGLE ===
@@ -427,6 +443,240 @@ function toggleMode() {
         map.setStyle('https://tiles.openfreemap.org/styles/liberty');
     }
     flightDeck.setMode(currentMode);
+}
+
+// === COUNTY MAP LAYER ===
+
+/**
+ * Build a GeoJSON FeatureCollection from county records + current date.
+ * Each county becomes a Point that we'll use to drive Voronoi-approximated
+ * circle markers (since full boundary shapefiles are too large to bundle).
+ * We use a large circle radius to approximate county territories.
+ */
+function buildCountyGeoJSON(date: Date): GeoJSON.FeatureCollection {
+    return {
+        type: 'FeatureCollection',
+        features: COUNTY_RECORDS.map(county => {
+            const snapshot = getCountySnapshot(county.fips, date)!;
+            const distCode = { STABLE: 0, ELEVATED: 1, SEVERE: 2, CRITICAL: 3 }[snapshot.distressLevel];
+            return {
+                type: 'Feature',
+                geometry: { type: 'Point', coordinates: [county.lng, county.lat] },
+                properties: {
+                    fips: county.fips,
+                    name: county.name,
+                    state: county.state,
+                    unemployment: snapshot.unemployment,
+                    distressCode: distCode,
+                    industrialIndex: county.industrialIndex,
+                    primaryIndustry: county.primaryIndustry,
+                    population: county.population1930,
+                }
+            } as GeoJSON.Feature;
+        })
+    };
+}
+
+function updateCountyColors(): void {
+    const date = timelineEngine.getCurrentDate();
+    const geojson = buildCountyGeoJSON(date);
+    (map.getSource('counties-points') as maplibregl.GeoJSONSource)?.setData(geojson);
+
+    // Also refresh the selected panel
+    if (selectedCountyFips) {
+        updateCountyPanel(selectedCountyFips);
+    }
+}
+
+function loadCountyLayers(): void {
+    if (countyLayersLoaded) return;
+
+    const date = timelineEngine.getCurrentDate();
+    const geojson = buildCountyGeoJSON(date);
+
+    // Add GeoJSON source
+    map.addSource('counties-points', { type: 'geojson', data: geojson });
+
+    // Outer glow (large, color-coded by distress)
+    map.addLayer({
+        id: 'county-glow',
+        type: 'circle',
+        source: 'counties-points',
+        paint: {
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 20, 5, 40, 7, 70],
+            'circle-blur': 0.9,
+            'circle-opacity': 0.25,
+            'circle-color': [
+                'step', ['get', 'distressCode'],
+                '#00ff88',   // 0: STABLE
+                1, '#ffcc00', // 1: ELEVATED
+                2, '#ff8800', // 2: SEVERE
+                3, '#ff2200'  // 3: CRITICAL
+            ]
+        }
+    }, 'county-border');
+
+    // Core dot
+    map.addLayer({
+        id: 'county-core',
+        type: 'circle',
+        source: 'counties-points',
+        paint: {
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 6, 5, 10, 7, 14],
+            'circle-blur': 0.1,
+            'circle-opacity': 0.9,
+            'circle-color': [
+                'step', ['get', 'distressCode'],
+                '#00ff88',
+                1, '#ffcc00',
+                2, '#ff8800',
+                3, '#ff2200'
+            ],
+            'circle-stroke-width': 1.5,
+            'circle-stroke-color': '#000818',
+        }
+    }, 'county-border');
+
+    // Hover glow layer
+    map.addLayer({
+        id: 'county-hover',
+        type: 'circle',
+        source: 'counties-points',
+        paint: {
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 8, 5, 14, 7, 18],
+            'circle-blur': 0,
+            'circle-opacity': 0,
+            'circle-color': '#ffffff',
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#ffffff',
+            'circle-stroke-opacity': 0
+        }
+    });
+
+    // Label layer
+    map.addLayer({
+        id: 'county-labels',
+        type: 'symbol',
+        source: 'counties-points',
+        minzoom: 5,
+        layout: {
+            'text-field': ['get', 'name'],
+            'text-size': 10,
+            'text-offset': [0, 1.5],
+            'text-anchor': 'top',
+        },
+        paint: {
+            'text-color': '#aaccff',
+            'text-halo-color': '#000818',
+            'text-halo-width': 2,
+            'text-opacity': 0.85
+        }
+    });
+
+    // ─── HOVER INTERACTIONS ───
+    const tooltip = document.getElementById('county-tooltip')!;
+    const tooltipName = document.getElementById('county-tooltip-name')!;
+    const tooltipUnemp = document.getElementById('county-tooltip-unemp')!;
+
+    let hoveredFips: string | null = null;
+
+    map.on('mousemove', 'county-core', (e) => {
+        if (!e.features || e.features.length === 0) return;
+        map.getCanvas().style.cursor = 'pointer';
+
+        const props = e.features[0].properties as any;
+        hoveredFips = props.fips;
+
+        tooltipName.textContent = `${props.name.toUpperCase()}, ${props.state}`;
+        tooltipUnemp.textContent = `UNEMP: ${props.unemployment.toFixed(1)}%`;
+
+        tooltip.style.left = `${e.originalEvent.clientX + 14}px`;
+        tooltip.style.top = `${e.originalEvent.clientY - 10}px`;
+        tooltip.classList.remove('hidden');
+
+        map.setPaintProperty('county-hover', 'circle-stroke-opacity', [
+            'case', ['==', ['get', 'fips'], hoveredFips], 1, 0
+        ]);
+    });
+
+    map.on('mouseleave', 'county-core', () => {
+        map.getCanvas().style.cursor = '';
+        tooltip.classList.add('hidden');
+        hoveredFips = null;
+        map.setPaintProperty('county-hover', 'circle-stroke-opacity', 0);
+    });
+
+    // ─── CLICK INTERACTIONS ───
+    map.on('click', 'county-core', (e) => {
+        if (!e.features || e.features.length === 0) return;
+        const props = e.features[0].properties as any;
+        selectedCountyFips = props.fips;
+        updateCountyPanel(props.fips);
+
+        // Fly toward the county
+        map.flyTo({
+            center: [e.lngLat.lng, e.lngLat.lat],
+            zoom: Math.max(map.getZoom(), 5.5),
+            duration: 800,
+            essential: true
+        });
+    });
+
+    countyLayersLoaded = true;
+    console.log('[County] Layers loaded');
+}
+
+function removeCountyLayers(): void {
+    ['county-labels', 'county-hover', 'county-core', 'county-glow'].forEach(id => {
+        if (map.getLayer(id)) map.removeLayer(id);
+    });
+    if (map.getSource('counties-points')) map.removeSource('counties-points');
+    countyLayersLoaded = false;
+    selectedCountyFips = null;
+    document.getElementById('county-info-panel')?.classList.add('hidden');
+}
+
+function updateCountyPanel(fips: string): void {
+    const date = timelineEngine.getCurrentDate();
+    const snap = getCountySnapshot(fips, date);
+    if (!snap) return;
+
+    const panel = document.getElementById('county-info-panel')!;
+    panel.classList.remove('hidden');
+
+    document.getElementById('county-panel-name')!.textContent = snap.name.toUpperCase();
+    document.getElementById('county-panel-state')!.textContent = snap.state;
+    document.getElementById('county-population')!.textContent =
+        snap.population.toLocaleString();
+    document.getElementById('county-industry')!.textContent = snap.primaryIndustry;
+
+    const unempBar = document.getElementById('county-unemployment-bar')!;
+    const unempVal = document.getElementById('county-unemployment-val')!;
+    unempBar.style.width = `${Math.min(100, snap.unemployment / 50 * 100)}%`;
+    unempVal.textContent = `${snap.unemployment.toFixed(1)}%`;
+
+    const indBar = document.getElementById('county-industrial-bar')!;
+    const indVal = document.getElementById('county-industrial-val')!;
+    indBar.style.width = `${snap.industrialIndex}%`;
+    indVal.textContent = `${snap.industrialIndex}`;
+
+    const badge = document.getElementById('county-distress-badge')!;
+    badge.textContent = snap.distressLevel;
+    badge.className = `distress-badge ${snap.distressLevel}`;
+}
+
+function toggleCountyMode(): void {
+    countyModeActive = !countyModeActive;
+    const btn = document.getElementById('county-mode-btn');
+
+    if (countyModeActive) {
+        btn?.classList.add('active');
+        loadCountyLayers();
+    } else {
+        btn?.classList.remove('active');
+        removeCountyLayers();
+        document.getElementById('county-info-panel')?.classList.add('hidden');
+    }
 }
 
 // === CONTROL PANEL LOGIC ===
@@ -576,6 +826,7 @@ map.on('load', async () => {
     }
 
     document.getElementById('toggle-btn')?.addEventListener('click', toggleMode);
+    document.getElementById('county-mode-btn')?.addEventListener('click', toggleCountyMode);
 
     // Time control buttons
     document.getElementById('play-btn')?.addEventListener('click', toggleAutoPlay);
@@ -608,6 +859,11 @@ map.on('style.load', () => {
     console.log('Style loaded! Mode:', currentMode);
     // Re-setup controls when style changes
     setTimeout(setupControls, 100);
+    // Re-load county layers if they were active
+    if (countyModeActive) {
+        countyLayersLoaded = false;
+        setTimeout(loadCountyLayers, 200);
+    }
 });
 
 map.on('error', (e) => console.error('MapLibre error:', e));
@@ -622,6 +878,9 @@ document.addEventListener('keydown', (e) => {
         case 'KeyM':
             toggleMode();
             break;
+        case 'KeyC':
+            toggleCountyMode();
+            break;
         case 'KeyF':
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
@@ -632,11 +891,12 @@ document.addEventListener('keydown', (e) => {
         case 'KeyS':
             document.getElementById('control-panel')?.classList.toggle('hidden');
             break;
-        case 'KeyK': // Market Ticker
+        case 'KeyK': {
             const theater = document.getElementById('market-operations-theater');
             const isHidden = theater?.classList.contains('hidden');
             flightDeck.toggleMarketTheater(!!isHidden);
             break;
+        }
 
         // Zoom controls
         case 'Equal': // + key
@@ -648,7 +908,7 @@ document.addEventListener('keydown', (e) => {
             map.zoomOut();
             break;
 
-        // Time controls (now connected!)
+        // Time controls
         case 'Space':
             e.preventDefault();
             toggleAutoPlay();
@@ -657,7 +917,6 @@ document.addEventListener('keydown', (e) => {
             advanceTime('day');
             break;
         case 'ArrowLeft':
-            // No rewind in current engine, but could advance by smaller amount
             console.log('[Keyboard] Rewind not implemented yet');
             break;
         case 'ArrowUp':
@@ -669,5 +928,4 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-console.log('[Keyboard] Shortcuts active: M=mode, F=fullscreen, S=settings, +/-=zoom, Arrows=time');
-
+console.log('[Keyboard] Shortcuts: M=mode, C=county, F=fullscreen, S=settings, K=market, +/-=zoom, Arrows=time');
