@@ -1,6 +1,5 @@
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-// @ts-ignore
 import mlcontour from 'maplibre-contour';
 
 // === DEM SOURCE FOR CONTOURS ===

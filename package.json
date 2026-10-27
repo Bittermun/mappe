@@ -1,5 +1,5 @@
 {
-  "name": "metallic-event",
+  "name": "mappe",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -14,10 +14,6 @@
   },
   "dependencies": {
     "maplibre-gl": "^4.0.0",
-    "maplibre-contour": "^0.1.0",
-    "deck.gl": "^9.0.0",
-    "@deck.gl/core": "^9.0.0",
-    "@deck.gl/layers": "^9.0.0",
-    "@deck.gl/mapbox": "^9.0.0"
+    "maplibre-contour": "^0.1.0"
   }
 }
